@@ -22,7 +22,7 @@ func TestBulk(t *testing.T) {
 	for i := 0 ; i < iterations ; i++ {
 		// Random delay from 1 to 10 seconds
 		delay := rand.Intn(10) + 1
-		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), "Expected " + strconv.Itoa(delay) + "s", delay))
+		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), "expected " + strconv.Itoa(delay) + "s", delay))
 	}
 
 
