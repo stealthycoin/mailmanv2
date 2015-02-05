@@ -19,7 +19,7 @@ func TestBulk(t *testing.T) {
 
 	// Create a collector with three workers
 	InitCollector(3)
-	iterations := 10 // Number of work requests to release
+	iterations := 1000 // Number of work requests to release
 
 	for i := 0 ; i < iterations ; i++ {
 		// Random delay from 1 to 10 seconds
