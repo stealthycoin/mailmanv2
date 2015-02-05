@@ -13,11 +13,13 @@ var (
 )
 
 func TestBulk(t *testing.T) {
+	// Seed rng and create a channel to recieve test results on
 	rand.Seed(time.Now().UTC().UnixNano())
 	TestResults = make(chan string)
 
+	// Create a collector with three workers
 	InitCollector(3)
-	iterations := 10
+	iterations := 10 // Number of work requests to release
 
 	for i := 0 ; i < iterations ; i++ {
 		// Random delay from 1 to 10 seconds
@@ -26,6 +28,7 @@ func TestBulk(t *testing.T) {
 	}
 
 
+	// Wait for the results and print them out for now
 	for iterations > 0 {
 		select {
 		case result := <- TestResults:
