@@ -29,11 +29,21 @@ func TestBulk(t *testing.T) {
 
 
 	// Wait for the results and print them out for now
+	errors := 0
 	for iterations > 0 {
 		select {
 		case result := <- TestResults:
-			fmt.Println(result)
+			re, _ := regexp.Compile("([0-9]+): took ([0-9]+)s expected ([0-9]+)")
+			match := re.FindStringSubmatch(result)
+			if match[2] != match[3] {
+				errors++
+			}
 			iterations--
 		}
+	}
+	if errors > 0 {
+		t.Errorf("%d message(s) not delivered on time.\n", errors)
+	} else {
+		fmt.Printf("All messages were delivered on time.\n")
 	}
 }
