@@ -1,13 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"time"
+	"bytes"
+	"strconv"
 )
 
-func PrintPayload(wr * WorkRequest) {
-	wg.Done()
-	fmt.Print(wr.uid + ": took ")
-	fmt.Print((time.Now().UnixNano() - wr.start_time) / int64(time.Second), "s ")
-	fmt.Println(wr.payload)
+func TestPayload(wr * WorkRequest) {
+	var buffer bytes.Buffer
+	buffer.WriteString(wr.uid + ": took ")
+	buffer.WriteString(strconv.FormatInt((time.Now().UnixNano() - wr.start_time) / int64(time.Second), 10))
+	buffer.WriteString("s " + wr.payload)
+	TestResults <- buffer.String()
 }

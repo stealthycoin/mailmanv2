@@ -4,12 +4,18 @@ import (
 	"testing"
 	"math/rand"
 	"strconv"
-	"sync"
+	"fmt"
+	"time"
 )
 
-var wg sync.WaitGroup
+var (
+	TestResults chan string
+)
 
 func TestBulk(t *testing.T) {
+	rand.Seed(time.Now().UTC().UnixNano())
+	TestResults = make(chan string)
+
 	InitCollector(3)
 	iterations := 10
 
@@ -19,6 +25,12 @@ func TestBulk(t *testing.T) {
 		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), "Expected " + strconv.Itoa(delay) + "s", delay))
 	}
 
-	wg.Add(iterations)
-	wg.Wait()
+
+	for iterations > 0 {
+		select {
+		case result := <- TestResults:
+			fmt.Println(result)
+			iterations--
+		}
+	}
 }
