@@ -13,7 +13,7 @@ var (
 	TestResults chan string
 )
 
-func TestBulk(b *testing.B) {
+func TestBulk(b *testing.T) {
 	// Seed rng and create a channel to recieve test results on
 	rand.Seed(time.Now().UTC().UnixNano())
 	TestResults = make(chan string)
