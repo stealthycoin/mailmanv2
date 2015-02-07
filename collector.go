@@ -45,6 +45,10 @@ func InitCollector(workerCount int) {
 
 // Accept a request for work
 func IssueWorkRequest(r *WorkRequest) {
-	requests[r.uid] = r
+	// Check for existing routine with same uid
+	// if it exists tell it to cancel
+	if wr, ok := requests[r.uid] ; ok {
+		wr.cancel <- true
+	}
 	go r.StartTimer()
 }

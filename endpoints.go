@@ -8,8 +8,18 @@ import (
 
 func TestPayload(wr * WorkRequest) {
 	var buffer bytes.Buffer
-	buffer.WriteString(wr.uid + ": took ")
-	buffer.WriteString(strconv.FormatInt((time.Now().UnixNano() - wr.start_time) / int64(time.Second), 10))
-	buffer.WriteString("s " + wr.payload)
-	TestResults <- buffer.String()
+
+	// Write testing message
+	diff, err := strconv.ParseInt(wr.payload, 10, 64)
+	if err != nil {
+		TestResults <- "Oh fuck"
+	} else {
+		diff -= time.Now().UnixNano()
+		diff /= 1000000000
+
+		buffer.WriteString(wr.uid + ": ")
+		buffer.WriteString(strconv.FormatInt(diff, 10))
+
+		TestResults <- buffer.String()
+	}
 }

@@ -15,7 +15,7 @@ var (
 
 func TestBulk(b *testing.T) {
 	// Seed rng and create a channel to recieve test results on
-	rand.Seed(time.Now().UTC().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 	TestResults = make(chan string)
 
 	// Create a collector with three workers
@@ -25,21 +25,22 @@ func TestBulk(b *testing.T) {
 	for i := 0 ; i < iterations ; i++ {
 		// Random delay from 1 to 10 seconds
 		delay := rand.Intn(10) + 1
-		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), "expected " + strconv.Itoa(delay) + "s", delay))
+
+		target := time.Now().UnixNano() + int64(delay) * 1000000000
+		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), strconv.FormatInt(target, 10), target))
 	}
 
 	// Wait for the results and print them out for now
 	errors := 0
+	re, _ := regexp.Compile("[0-9]+: ([0-9]+)")
 	for iterations > 0 {
-		select {
-		case result := <- TestResults:
-			re, _ := regexp.Compile("([0-9]+): took ([0-9]+)s expected ([0-9]+)")
-			match := re.FindStringSubmatch(result)
-			if match[2] != match[3] {
-				errors++
-			}
-			iterations--
+		result := <- TestResults
+		match := re.FindStringSubmatch(result)
+		if match[1] != "0" {
+			fmt.Println(result)
+			errors++
 		}
+		iterations--
 	}
 	if errors > 0 {
 		b.Errorf("%d message(s) not delivered on time.\n", errors)
