@@ -13,7 +13,7 @@ var (
 	TestResults chan string
 )
 
-func TestBulk(b *testing.T) {
+func TestBulk(t *testing.T) {
 	// Seed rng and create a channel to recieve test results on
 	rand.Seed(time.Now().UnixNano())
 	TestResults = make(chan string)
@@ -27,7 +27,7 @@ func TestBulk(b *testing.T) {
 		delay := rand.Intn(10) + 1
 
 		target := time.Now().UnixNano() + int64(delay) * 1000000000
-		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), strconv.FormatInt(target, 10), target))
+		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), "testtime", strconv.FormatInt(target, 10), target))
 	}
 
 	// Wait for the results and print them out for now
@@ -36,15 +36,25 @@ func TestBulk(b *testing.T) {
 	for iterations > 0 {
 		result := <- TestResults
 		match := re.FindStringSubmatch(result)
-		if match[1] != "0" {
+		if len(match) != 2 || match[1] != "0" {
 			fmt.Println(result)
 			errors++
 		}
 		iterations--
 	}
 	if errors > 0 {
-		b.Errorf("%d message(s) not delivered on time.\n", errors)
+		t.Errorf("%d message(s) not delivered on time.\n", errors)
 	} else {
 		fmt.Printf("All messages were delivered on time.\n")
+	}
+}
+
+func TestReplace(t *testing.T) {
+	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message1", time.Now().UnixNano() + 2000000000))
+	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message2", time.Now().UnixNano() + 4000000000))
+
+	result := <- TestResults
+	if result == "message1" {
+		t.Errorf("Wrong message\n")
 	}
 }

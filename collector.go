@@ -1,6 +1,7 @@
 package main
 
 var (
+	endpoints map[string]endpoint
 	requests map[string]*WorkRequest
 	workerQueue chan chan *WorkRequest
 	workQueue chan *WorkRequest
@@ -14,6 +15,11 @@ type Payload struct {
 
 // Create and launch a collector
 func InitCollector(workerCount int) {
+	endpoints = make(map[string]endpoint)
+	endpoints["testtime"] = TestTimePayload
+	endpoints["testpayload"] = TestPayload
+
+
 	requests = make(map[string]*WorkRequest)
 	workerQueue = make(chan chan *WorkRequest, workerCount)
 	workQueue = make(chan *WorkRequest, 100)
@@ -31,6 +37,7 @@ func InitCollector(workerCount int) {
 		for {
 			select {
 			case work := <- workQueue:
+				delete(requests, work.uid) // Remove from list of idling work requests
 				go func() {
 					// Get a worker from the worker queue
 					worker := <- workerQueue
@@ -50,5 +57,6 @@ func IssueWorkRequest(r *WorkRequest) {
 	if wr, ok := requests[r.uid] ; ok {
 		wr.cancel <- true
 	}
+	requests[r.uid] = r
 	go r.StartTimer()
 }

@@ -6,7 +6,9 @@ import (
 	"strconv"
 )
 
-func TestPayload(wr * WorkRequest) {
+type endpoint func(wr *WorkRequest)
+
+func TestTimePayload(wr *WorkRequest) {
 	var buffer bytes.Buffer
 
 	// Write testing message
@@ -22,4 +24,9 @@ func TestPayload(wr * WorkRequest) {
 
 		TestResults <- buffer.String()
 	}
+}
+
+
+func TestPayload(wr *WorkRequest) {
+	TestResults <- wr.payload
 }

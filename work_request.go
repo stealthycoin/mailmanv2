@@ -7,6 +7,7 @@ _	"fmt"
 
 type WorkRequest struct {
 	uid string
+	endpoint string
 	payload string
 	timestamp int64
 	cancel chan bool
@@ -15,9 +16,10 @@ type WorkRequest struct {
 
 
 // Construct a new work request
-func NewWorkRequest(uid, payload string, timestamp int64) *WorkRequest {
+func NewWorkRequest(uid, endpoint, payload string, timestamp int64) *WorkRequest {
 	return &WorkRequest{
 		uid: uid,
+		endpoint: endpoint,
 		payload: payload,
 		timestamp: timestamp,
 		cancel: make(chan bool),
