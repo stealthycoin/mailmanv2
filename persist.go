@@ -24,7 +24,6 @@ func InitPersist() {
 		for {
 			<- hup
 			BackupRequests()
-			os.Exit(1)
 		}
 	}()
 
