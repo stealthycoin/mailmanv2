@@ -6,12 +6,12 @@ _	"fmt"
 )
 
 type WorkRequest struct {
-	uid string
-	endpoint string
-	payload string
-	timestamp int64
-	cancel chan bool
-	valid bool
+	Uid string
+	Endpoint string
+	Payload string
+	Timestamp int64
+	Cancel chan bool
+	Valid bool
 }
 
 
