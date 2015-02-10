@@ -6,6 +6,7 @@ var (
 	workerQueue chan chan *WorkRequest
 	workQueue chan *WorkRequest
 	workers []*Worker
+	collectorQuit chan bool
 )
 
 
@@ -15,15 +16,19 @@ type Payload struct {
 
 // Create and launch a collector
 func InitCollector(workerCount int) {
+
 	endpoints = make(map[string]endpoint)
 	endpoints["testtime"] = TestTimePayload
 	endpoints["testpayload"] = TestPayload
 
 
+	// Global values
 	requests = make(map[string]*WorkRequest)
 	workerQueue = make(chan chan *WorkRequest, workerCount)
 	workQueue = make(chan *WorkRequest, 100)
 	workers = make([]*Worker, 0, 0)
+
+	collectorQuit = make(chan bool)
 
 	for i := 1 ; i <= workerCount ; i++ {
 		w := NewWorker(i, workerQueue)
@@ -45,6 +50,11 @@ func InitCollector(workerCount int) {
 					// Give the worker the work to do
 					worker <- work
 				}()
+			case <- collectorQuit:
+				for _, worker := range workers {
+					worker.Quit <- true
+				}
+				return
 			}
 		}
 	}()
@@ -59,4 +69,10 @@ func IssueWorkRequest(r *WorkRequest) {
 	}
 	requests[r.uid] = r
 	go r.StartTimer()
+}
+
+
+// Shutdown collector
+func StopCollector() {
+	collectorQuit <- true
 }

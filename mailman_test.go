@@ -47,14 +47,30 @@ func TestBulk(t *testing.T) {
 	} else {
 		fmt.Printf("All messages were delivered on time.\n")
 	}
+
+	StopCollector()
 }
 
+
 func TestReplace(t *testing.T) {
-	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message1", time.Now().UnixNano() + 2000000000))
-	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message2", time.Now().UnixNano() + 4000000000))
+	InitCollector(2)
+	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message1", time.Now().UnixNano() + 1000000000))
+	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message2", time.Now().UnixNano() + 2000000000))
 
 	result := <- TestResults
 	if result == "message1" {
 		t.Errorf("Wrong message\n")
 	}
+	StopCollector()
+}
+
+func TestBackup(t *testing.T) {
+	InitCollector(1)
+	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "TURTLE POWER", time.Now().UnixNano() + 3000000000))
+	BackupRequests()
+	LoadRequests()
+	if (requests["ID"].payload != "TURTLE POWER") {
+		t.Errorf("Loaded value does not match saved value")
+	}
+	StopCollector()
 }
