@@ -18,13 +18,24 @@ func InitPersist() {
 	gob.Register(requests)
 
 	// Handle the HUP signal which will be defined to backup memory
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGHUP)
+	hup := make(chan os.Signal, 1)
+	signal.Notify(hup, syscall.SIGHUP)
 	go func() {
 		for {
-			<- sigs
+			<- hup
 			BackupRequests()
+			os.Exit(1)
 		}
+	}()
+
+	// Handle the INT/TERM signal which should also back up memory
+	sigs := make (chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<- sigs
+		fmt.Println("INT/TERM")
+		BackupRequests()
+		os.Exit(1)
 	}()
 }
 
