@@ -18,12 +18,12 @@ type WorkRequest struct {
 // Construct a new work request
 func NewWorkRequest(uid, endpoint, payload string, timestamp int64) *WorkRequest {
 	return &WorkRequest{
-		uid: uid,
-		endpoint: endpoint,
-		payload: payload,
-		timestamp: timestamp,
-		cancel: make(chan bool),
-		valid: true,
+		Uid: uid,
+		Endpoint: endpoint,
+		Payload: payload,
+		Timestamp: timestamp,
+		Cancel: make(chan bool),
+		Valid: true,
 
 	}
 }
@@ -39,18 +39,18 @@ func (wr *WorkRequest) StartTimer() {
 		for running {
 			select {
 			case <- timeout:
-				if wr. valid {
+				if wr.Valid {
 					workQueue <- wr
 				}
 				running = false
-			case <- wr.cancel:
-				wr.valid = false
+			case <- wr.Cancel:
+				wr.Valid = false
 			}
 		}
 	}()
 
 	// Trigger the timeout in the listening routine after sleeping
-	sleepTime := wr.timestamp - time.Now().UnixNano()
+	sleepTime := wr.Timestamp - time.Now().UnixNano()
 	if sleepTime <= 0 {
 		timeout <- true
 	} else {

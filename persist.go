@@ -32,13 +32,15 @@ func InitPersist() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<- sigs
-		fmt.Println("INT/TERM")
 		BackupRequests()
 		os.Exit(1)
 	}()
+
+	LoadRequests()
 }
 
 func LoadRequests() {
+	// Read gob into requests
 	file, err := os.Open(backupPath)
 	if err != nil {
 		fmt.Println(err)
@@ -46,7 +48,15 @@ func LoadRequests() {
 	defer file.Close()
 
 	dec := gob.NewDecoder(file)
-	dec.Decode(requests)
+	err = dec.Decode(&requests)
+	if err != nil {
+		fmt.Println(err, "Cannot decode file")
+	}
+
+	// Reload all work requests
+	for _, req := range requests {
+		go req.StartTimer()
+	}
 }
 
 func BackupRequests() {

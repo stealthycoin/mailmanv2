@@ -9,9 +9,11 @@ import (
 	"regexp"
 )
 
-var (
-	TestResults chan string
-)
+
+func init() {
+	InitPersist()
+}
+
 
 func TestBulk(t *testing.T) {
 	// Seed rng and create a channel to recieve test results on

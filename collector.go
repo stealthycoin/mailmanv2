@@ -20,6 +20,7 @@ func InitCollector(workerCount int) {
 	endpoints = make(map[string]endpoint)
 	endpoints["testtime"] = TestTimePayload
 	endpoints["testpayload"] = TestPayload
+	endpoints["println"] = PrintlnEndpoint
 
 
 	// Global values
@@ -42,7 +43,7 @@ func InitCollector(workerCount int) {
 		for {
 			select {
 			case work := <- workQueue:
-				delete(requests, work.uid) // Remove from list of idling work requests
+				delete(requests, work.Uid) // Remove from list of idling work requests
 				go func() {
 					// Get a worker from the worker queue
 					worker := <- workerQueue
@@ -64,10 +65,10 @@ func InitCollector(workerCount int) {
 func IssueWorkRequest(r *WorkRequest) {
 	// Check for existing routine with same uid
 	// if it exists tell it to cancel
-	if wr, ok := requests[r.uid] ; ok {
-		wr.cancel <- true
+	if wr, ok := requests[r.Uid] ; ok {
+		wr.Cancel <- true
 	}
-	requests[r.uid] = r
+	requests[r.Uid] = r
 	go r.StartTimer()
 }
 
