@@ -71,7 +71,7 @@ func TestBackup(t *testing.T) {
 	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "TURTLE POWER", time.Now().UnixNano() + 3000000000))
 	BackupRequests()
 	LoadRequests()
-	if (requests["ID"].payload != "TURTLE POWER") {
+	if (requests["ID"].Payload != "TURTLE POWER") {
 		t.Errorf("Loaded value does not match saved value")
 	}
 	StopCollector()
