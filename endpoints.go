@@ -5,6 +5,8 @@ import (
 	"time"
 	"bytes"
 	"strconv"
+	"github.com/anachronistic/apns"
+	"github.com/alexjlockwood/gcm" // No idea if this works
 )
 
 var (
@@ -39,4 +41,42 @@ func TestPayload(wr *WorkRequest) {
 
 func PrintlnEndpoint(wr *WorkRequest) {
 	fmt.Println(wr.Payload)
+}
+
+
+// Production endpoints
+func ApnsEndpoint(token, body string) {
+	payload := apns.NewPayload()
+	payload.Alert = "Hello, World!"
+	payload.Badge = 42
+	payload.Sound = "bingbong.aiff"
+
+	pn := apns.NewPushNotification()
+	pn.DeviceToken = token
+	pn.AddPayload(payload)
+
+	client := apns.NewClient("gateway.push.apple.com:2195",
+		"/home/theupdatesmen/go/src/bitbucket.org/push_server/certs/HearthPushCert.pem",
+		"/home/theupdatesmen/go/src/bitbucket.org/push_server/certs/HearthPushKey.pem")
+	resp := client.Send(pn)
+	alert, _ := pn.PayloadString()
+	fmt.Println("  Token:", token)
+	fmt.Println("  Alert:", alert)
+	fmt.Println("Success:", resp.Success)
+	fmt.Println("  Error:", resp.Error)
+}
+
+
+func GcmEndpoint(token, body string) {
+	data := map[string]interface{}{"score": "5x1", "time": "15:10", "body": body}
+	regIDs := []string{token}
+	msg := gcm.NewMessage(data, regIDs...)
+
+	sender := &gcm.Sender{ApiKey: "AIzaSyD3IkvITGo_dadoUri17LdzcZdTEThpImE"}
+
+	response, err := sender.Send(msg, 2)
+	if err != nil {
+		fmt.Println("Failed to send message:", err)
+	}
+	fmt.Println(response)
 }
