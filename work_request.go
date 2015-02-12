@@ -39,6 +39,8 @@ func (wr *WorkRequest) StartTimer() {
 		for running {
 			select {
 			case <- timeout:
+				// Delete it since we can no longer cancel it
+				delete(requests, wr.Uid)
 				if wr.Valid {
 					workQueue <- wr
 				}

@@ -43,7 +43,6 @@ func InitCollector(workerCount int) {
 		for {
 			select {
 			case work := <- workQueue:
-				delete(requests, work.Uid) // Remove from list of idling work requests
 				go func() {
 					// Get a worker from the worker queue
 					worker := <- workerQueue
