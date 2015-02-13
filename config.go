@@ -22,7 +22,7 @@ func InitConfig() {
 	lines := strings.Split(string(data), "\n")
 	for _, line := range lines {
 		line = strings.Trim(line, " ")
-		if i := strings.Index(line, "//") ; i >= 0 {
+		if i := strings.Index(line, "#") ; i >= 0 {
 			line = line[0:i]
 		}
 		line = strings.Trim(line, " ")
