@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -43,14 +43,15 @@ func LoadRequests() {
 	// Read gob into requests
 	file, err := os.Open(backupPath)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("No backup file exists")
+		return
 	}
 	defer file.Close()
 
 	dec := gob.NewDecoder(file)
 	err = dec.Decode(&requests)
 	if err != nil {
-		fmt.Println(err, "Cannot decode file")
+		log.Println("Cannot decode backup file")
 	}
 
 	// Reload all work requests
@@ -63,7 +64,7 @@ func BackupRequests() {
 	// Check if backup file already exists
 	file, err := os.Create(backupPath)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	defer file.Close()
 
