@@ -2,29 +2,23 @@ package main
 
 import (
 	"time"
-_	"fmt"
 )
 
 type WorkRequest struct {
-	Uid string
-	Endpoint string
-	Payload string
-	Timestamp int64
-	Cancel chan bool
-	Valid bool
+	Uid string       `json:"uid"`
+	Endpoint string  `json:"endpoint"`
+	Payload string   `json:"payload"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 
-// Construct a new work request
+// Construct a new work request (this is for testing purposes)
 func NewWorkRequest(uid, endpoint, payload string, timestamp int64) *WorkRequest {
 	return &WorkRequest{
 		Uid: uid,
 		Endpoint: endpoint,
 		Payload: payload,
 		Timestamp: timestamp,
-		Cancel: make(chan bool),
-		Valid: true,
-
 	}
 }
 
@@ -35,20 +29,8 @@ func (wr *WorkRequest) StartTimer() {
 
 	// Start listening routine
 	go func() {
-		running := true
-		for running {
-			select {
-			case <- timeout:
-				// Delete it since we can no longer cancel it
-				delete(requests, wr.Uid)
-				if wr.Valid {
-					workQueue <- wr
-				}
-				running = false
-			case <- wr.Cancel:
-				wr.Valid = false
-			}
-		}
+		<- timeout
+		workQueue <- wr
 	}()
 
 	// Trigger the timeout in the listening routine after sleeping

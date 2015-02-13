@@ -7,6 +7,7 @@ var (
 	workQueue chan *WorkRequest
 	workers []*Worker
 	collectorQuit chan bool
+	collectRequest chan *WorkRequest
 )
 
 
@@ -30,6 +31,7 @@ func InitCollector(workerCount int) {
 	workers = make([]*Worker, 0, 0)
 
 	collectorQuit = make(chan bool)
+	collectRequest = make(chan *WorkRequest)
 
 	for i := 1 ; i <= workerCount ; i++ {
 		w := NewWorker(i, workerQueue)
@@ -43,34 +45,29 @@ func InitCollector(workerCount int) {
 		for {
 			select {
 			case work := <- workQueue:
-				go func() {
-					// Get a worker from the worker queue
-					worker := <- workerQueue
+				// Make sure work is still valid
+				if work == requests[work.Uid] {
+					go func() {
+						// Get a worker from the worker queue
+						worker := <- workerQueue
 
-					// Give the worker the work to do
-					worker <- work
-				}()
+						// Give the worker the work to do
+						worker <- work
+					}()
+				}
 			case <- collectorQuit:
 				for _, worker := range workers {
 					worker.Quit <- true
 				}
 				return
+			case wr := <- collectRequest:
+				requests[wr.Uid] = wr
+				go wr.StartTimer()
+
 			}
 		}
 	}()
 }
-
-// Accept a request for work
-func IssueWorkRequest(r *WorkRequest) {
-	// Check for existing routine with same uid
-	// if it exists tell it to cancel
-	if wr, ok := requests[r.Uid] ; ok {
-		wr.Cancel <- true
-	}
-	requests[r.Uid] = r
-	go r.StartTimer()
-}
-
 
 // Shutdown collector
 func StopCollector() {

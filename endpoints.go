@@ -72,7 +72,7 @@ func GcmEndpoint(token, body string) {
 	regIDs := []string{token}
 	msg := gcm.NewMessage(data, regIDs...)
 
-	sender := &gcm.Sender{ApiKey: "AIzaSyD3IkvITGo_dadoUri17LdzcZdTEThpImE"}
+	sender := &gcm.Sender{ApiKey: config["gcm"].(string)}
 
 	response, err := sender.Send(msg, 2)
 	if err != nil {
