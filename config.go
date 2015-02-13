@@ -25,6 +25,7 @@ func InitConfig() {
 		if i := strings.Index(line, "//") ; i >= 0 {
 			line = line[0:i]
 		}
+		line = strings.Trim(line, " ")
 		if len(line) > 0 {
 			kv := strings.Split(line, "=")
 			config[strings.Trim(kv[0], " ")] = strings.Trim(kv[1], " ")
