@@ -10,7 +10,7 @@ func main() {
 	// Init all the components
 	InitConfig()
 	InitPersist()
-	wc, _ := strconv.Atoi(config["workers"].(string))
+	wc, _ := strconv.Atoi(config["workers"])
 	InitCollector(wc)
 
 	// Handler function for requests

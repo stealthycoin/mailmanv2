@@ -3,20 +3,53 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"os"
+	"time"
+	"os/signal"
+	"syscall"
 	"strings"
+	"strconv"
 )
 
 // Config variables
 var (
 	configPath string = "mailman.conf"
-	config map[string]interface{}
+	config map[string]string
 )
 
 func InitConfig() {
-	config = make(map[string]interface{})
+	config = make(map[string]string)
+
+	// Listen for USR1 signal to reload the conf file
+	reload := make(chan os.Signal, 1)
+	signal.Notify(reload, syscall.SIGUSR1)
+	go func() {
+		for {
+			<- reload
+			LoadConfig()
+		}
+	}()
+
+	LoadConfig()
+
+	// Backu every td seconds
+	go func() {
+		for {
+			td := 360 // Default timedelay to an hour
+			if delay, ok := config["backup_delay"] ; ok {
+				td, _ = strconv.Atoi(delay)
+			}
+			time.Sleep(time.Duration(td) * time.Second)
+			backup <- true
+		}
+	}()
+}
+
+func LoadConfig() {
+	log.Println("Loading config.")
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Println("Failed to open configfile: ", configPath)
+		log.Println("Failed to open config file: ", configPath)
 		return
 	}
 	lines := strings.Split(string(data), "\n")

@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 var (
 	endpoints map[string]endpoint
 	requests map[string]*WorkRequest
@@ -63,7 +65,8 @@ func InitCollector(workerCount int) {
 				go wr.StartTimer()
 			case <- backup:
 				// do some backup stuff
-
+				fmt.Println("backup")
+				BackupRequests()
 			}
 		}
 	}()
