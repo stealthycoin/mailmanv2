@@ -17,10 +17,8 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var wr WorkRequest
 		err := json.Unmarshal([]byte(r.FormValue("work")), &wr)
-		wr.Cancel = make(chan bool)
-		wr.Valid = true
 		if err != nil {
-			IssueWorkRequest(&wr)
+			collectRequest <- &wr
 		}
 	})
 

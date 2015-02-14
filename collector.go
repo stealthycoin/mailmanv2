@@ -8,12 +8,9 @@ var (
 	workers []*Worker
 	collectorQuit chan bool
 	collectRequest chan *WorkRequest
+	backup chan bool
 )
 
-
-type Payload struct {
-	Message string `json:"message"`
-}
 
 // Create and launch a collector
 func InitCollector(workerCount int) {
@@ -32,6 +29,7 @@ func InitCollector(workerCount int) {
 
 	collectorQuit = make(chan bool)
 	collectRequest = make(chan *WorkRequest)
+	backup = make(chan bool)
 
 	for i := 1 ; i <= workerCount ; i++ {
 		w := NewWorker(i, workerQueue)
@@ -63,6 +61,8 @@ func InitCollector(workerCount int) {
 			case wr := <- collectRequest:
 				requests[wr.Uid] = wr
 				go wr.StartTimer()
+			case <- backup:
+				// do some backup stuff
 
 			}
 		}
