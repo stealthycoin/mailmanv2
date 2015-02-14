@@ -8,10 +8,6 @@ import (
 	"encoding/gob"
 )
 
-var (
-	backupPath = "requests.gob"
-)
-
 // Launch persistence
 func InitPersist() {
 	// Gob type registration
