@@ -8,17 +8,21 @@ type WorkRequest struct {
 	Uid string       `json:"uid"`
 	Endpoint string  `json:"endpoint"`
 	Payload string   `json:"payload"`
+	Token string     `json:"token"`
 	Timestamp int64  `json:"timestamp"`
+	Testing bool     `json:"testing"` // Just for apple push notes brah
 }
 
 
 // Construct a new work request (this is for testing purposes)
-func NewWorkRequest(uid, endpoint, payload string, timestamp int64) *WorkRequest {
+func NewWorkRequest(uid, endpoint, token, payload string, timestamp int64) *WorkRequest {
 	return &WorkRequest{
 		Uid: uid,
 		Endpoint: endpoint,
 		Payload: payload,
+		Token: token,
 		Timestamp: timestamp,
+		Testing: true,
 	}
 }
 

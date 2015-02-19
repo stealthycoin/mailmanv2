@@ -52,6 +52,7 @@ func LoadRequests() {
 
 	// Reload all work requests
 	for _, req := range requests {
+		log.Println(req)
 		go req.StartTimer()
 	}
 }

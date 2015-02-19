@@ -16,12 +16,15 @@ var (
 
 // Create and launch a collector
 func InitCollector(workerCount int) {
-
 	endpoints = make(map[string]endpoint)
+	// Test endpoints
 	endpoints["testtime"] = TestTimePayload
 	endpoints["testpayload"] = TestPayload
 	endpoints["println"] = PrintlnEndpoint
 
+	// Real endpoints
+	endpoints["website"] = WebsiteEndpoint
+	endpoints["apns"] = ApnsEndpoint
 
 	// Global values
 	requests = make(map[string]*WorkRequest)
