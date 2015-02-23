@@ -29,7 +29,7 @@ func TestBulk(t *testing.T) {
 		delay := rand.Intn(10) + 1
 
 		target := time.Now().UnixNano() + int64(delay) * 1000000000
-		IssueWorkRequest(NewWorkRequest(strconv.Itoa(i), "testtime", strconv.FormatInt(target, 10), target))
+		collectRequest <- NewWorkRequest(strconv.Itoa(i), "testtime", "", strconv.FormatInt(target, 10), target)
 	}
 
 	// Wait for the results and print them out for now
@@ -56,8 +56,8 @@ func TestBulk(t *testing.T) {
 
 func TestReplace(t *testing.T) {
 	InitCollector(2)
-	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message1", time.Now().UnixNano() + 1000000000))
-	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "message2", time.Now().UnixNano() + 2000000000))
+	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message1", time.Now().UnixNano() + 1000000000)
+	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message2", time.Now().UnixNano() + 2000000000)
 
 	result := <- TestResults
 	if result == "message1" {
@@ -68,11 +68,21 @@ func TestReplace(t *testing.T) {
 
 func TestBackup(t *testing.T) {
 	InitCollector(1)
-	IssueWorkRequest(NewWorkRequest("ID", "testpayload", "TURTLE POWER", time.Now().UnixNano() + 3000000000))
+	collectRequest <- NewWorkRequest("ID", "testpayload", "", "TURTLE POWER", time.Now().UnixNano() + 3000000000)
 	BackupRequests()
 	LoadRequests()
 	if (requests["ID"].Payload != "TURTLE POWER") {
 		t.Errorf("Loaded value does not match saved value")
 	}
+	StopCollector()
+}
+
+// Deliver a webiste notification in 5 seconds
+func TestWebsiteDelivery(t *testing.T) {
+	InitCollector(1)
+
+	collectRequest <- NewWorkRequest("ID", "website", "3", `{"title":"You have earned the Selfie badge", "img": "https://www.hearthapp.net/static/images/badge/selfie.png", "imgwidth": 60, "content": "Upload a profile picture for the first time."}`, time.Now().UnixNano() + 5000000000)
+	time.Sleep(time.Duration(6) * time.Second)
+
 	StopCollector()
 }
