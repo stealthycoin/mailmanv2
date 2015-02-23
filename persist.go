@@ -39,7 +39,7 @@ func LoadRequests() {
 	// Read gob into requests
 	file, err := os.Open(config["backup_path"])
 	if err != nil {
-		log.Println("No backup file exists")
+		log.Println(err)
 		return
 	}
 	defer file.Close()
@@ -61,7 +61,7 @@ func BackupRequests() {
 	// Check if backup file already exists
 	file, err := os.Create(config["backup_path"])
 	if err != nil {
-		log.Println(err)
+		log.Println(err, config["backup_path"])
 	}
 	defer file.Close()
 
