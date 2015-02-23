@@ -47,6 +47,9 @@ func InitConfig() {
 
 func LoadConfig() {
 	log.Println("Loading config.")
+	// Defaults set here and will be overrided by the config file
+	config["backup_path"] = "backup.gob"
+
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		log.Println("Failed to open config file: ", configPath)
