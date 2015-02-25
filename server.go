@@ -28,7 +28,7 @@ func main() {
 	InitCollector(wc)
 
 	// Handler function for requests
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/push/", func(w http.ResponseWriter, r *http.Request) {
 		// Recover from errors
 		defer func() {
 			if rec := recover() ; rec != nil {
