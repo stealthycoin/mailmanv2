@@ -38,11 +38,11 @@ func (wr *WorkRequest) StartTimer() {
 	}()
 
 	// Trigger the timeout in the listening routine after sleeping
-	sleepTime := wr.Timestamp - time.Now().UnixNano()
+	sleepTime := wr.Timestamp - time.Now().Unix()
 	if sleepTime <= 0 {
 		timeout <- true
 	} else {
-		time.Sleep(time.Duration(sleepTime) * time.Nanosecond)
+		time.Sleep(time.Duration(sleepTime) * time.Second)
 		timeout <- true
 	}
 }

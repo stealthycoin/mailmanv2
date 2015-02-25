@@ -61,7 +61,18 @@ func ApnsEndpoint(wr *WorkRequest) {
 	payload.Sound = "bingbong.aiff"
 
 	pn := apns.NewPushNotification()
-	pn.DeviceToken = "969ed0884876465828f7945ee3141370b43e76a74179d3efdfbb726e80feeb36"
+	// Getting the device token is a matter of fetching a lot of stuff from the database make this one query later
+	var id int64
+	err := db.QueryRow(`select user_id from main_userprofile where id = $1`, wr.Token).Scan(&id)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	err = db.QueryRow(`select registration_id from push_notifications_apnsdevice where user_id = $1`, id).Scan(&pn.DeviceToken)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	pn.AddPayload(payload)
 
 	// Create the client based on whether we are testing or not
@@ -76,13 +87,14 @@ func ApnsEndpoint(wr *WorkRequest) {
 			config["apple_push_cert"],
 			config["apple_push_key"])
 	}
-	resp := client.Send(pn)
+	// Ignoring errors like a good boi
+	client.Send(pn)
 
-	alert, _ := pn.PayloadString()
-	fmt.Println("  Token:", wr.Token)
-	fmt.Println("  Alert:", alert)
-	fmt.Println("Success:", resp.Success)
-	fmt.Println("  Error:", resp.Error)
+	pn.PayloadString()
+	// fmt.Println("  Token:", wr.Token)
+	// fmt.Println("  Alert:", alert)
+	// fmt.Println("Success:", resp.Success)
+	// fmt.Println("  Error:", resp.Error)
 }
 
 //GCM is totally borked right now

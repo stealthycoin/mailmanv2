@@ -17,7 +17,7 @@ func init() {
 
 func TestBulk(t *testing.T) {
 	// Seed rng and create a channel to recieve test results on
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().Unix())
 	TestResults = make(chan string)
 
 	// Create a collector with three workers
@@ -28,7 +28,7 @@ func TestBulk(t *testing.T) {
 		// Random delay from 1 to 10 seconds
 		delay := rand.Intn(10) + 1
 
-		target := time.Now().UnixNano() + int64(delay) * 1000000000
+		target := time.Now().Unix() + int64(delay) * 1
 		collectRequest <- NewWorkRequest(strconv.Itoa(i), "testtime", "", strconv.FormatInt(target, 10), target)
 	}
 
@@ -56,8 +56,8 @@ func TestBulk(t *testing.T) {
 
 func TestReplace(t *testing.T) {
 	InitCollector(2)
-	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message1", time.Now().UnixNano() + 1000000000)
-	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message2", time.Now().UnixNano() + 2000000000)
+	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message1", time.Now().Unix() + 1)
+	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message2", time.Now().Unix() + 2)
 
 	result := <- TestResults
 	if result == "message1" {
@@ -68,8 +68,8 @@ func TestReplace(t *testing.T) {
 
 func TestBackup(t *testing.T) {
 	InitCollector(1)
-	collectRequest <- NewWorkRequest("ID", "testpayload", "", "TURTLE POWER", time.Now().UnixNano() + 3000000000)
-	BackupRequests()
+	collectRequest <- NewWorkRequest("ID", "testpayload", "", "TURTLE POWER", time.Now().Unix() + 3)
+	BACKUPREQUESTS()
 	LoadRequests()
 	if (requests["ID"].Payload != "TURTLE POWER") {
 		t.Errorf("Loaded value does not match saved value")
@@ -81,7 +81,7 @@ func TestBackup(t *testing.T) {
 func TestWebsiteDelivery(t *testing.T) {
 	InitCollector(1)
 
-	collectRequest <- NewWorkRequest("ID", "website", "3", `{"title":"You have earned the Selfie badge", "img": "https://www.hearthapp.net/static/images/badge/selfie.png", "imgwidth": 60, "content": "Upload a profile picture for the first time."}`, time.Now().UnixNano() + 5000000000)
+	collectRequest <- NewWorkRequest("ID", "website", "3", `{"title":"You have earned the Selfie badge", "img": "https://www.hearthapp.net/static/images/badge/selfie.png", "imgwidth": 60, "content": "Upload a profile picture for the first time."}`, time.Now().Unix() + 5)
 	time.Sleep(time.Duration(6) * time.Second)
 
 	StopCollector()
