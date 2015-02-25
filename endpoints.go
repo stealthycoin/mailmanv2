@@ -32,8 +32,7 @@ func TestTimePayload(wr *WorkRequest) {
 	if err != nil {
 		TestResults <- "Oh fuck"
 	} else {
-		diff -= time.Now().UnixNano()
-		diff /= 1000000000
+		diff -= time.Now().Unix()
 
 		buffer.WriteString(wr.Uid + ": ")
 		buffer.WriteString(strconv.FormatInt(diff, 10))

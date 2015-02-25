@@ -7,8 +7,13 @@ import (
 	"fmt"
 	"time"
 	"regexp"
+	"database/sql"
 )
 
+
+var (
+	db *sql.DB
+)
 
 func init() {
 	InitPersist()
@@ -69,7 +74,7 @@ func TestReplace(t *testing.T) {
 func TestBackup(t *testing.T) {
 	InitCollector(1)
 	collectRequest <- NewWorkRequest("ID", "testpayload", "", "TURTLE POWER", time.Now().Unix() + 3)
-	BACKUPREQUESTS()
+	BackupRequests()
 	LoadRequests()
 	if (requests["ID"].Payload != "TURTLE POWER") {
 		t.Errorf("Loaded value does not match saved value")
