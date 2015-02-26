@@ -91,3 +91,21 @@ func TestWebsiteDelivery(t *testing.T) {
 
 	StopCollector()
 }
+
+
+func TestCancel(t *testing.T) {
+	InitCollector(1)
+	fmt.Println("Testing Cancel")
+	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message", time.Now().Unix() + 1) // Deliver in 1 seconds
+	collectRequest <- NewWorkRequest("ID", "cancel", "0", "n/a", 0) // Cancel the message coming in 1 second
+	collectRequest <- NewWorkRequest("ID2", "testpayload", "0", "yay", time.Now().Unix() + 2) // Deliver in 2 seconds
+
+	// Should get yay since message was canceled
+	result := <- TestResults
+	if result != "yay" {
+		t.Errorf("Wrong message\n")
+	} else {
+		fmt.Println("Cancel successful")
+	}
+	StopCollector()
+}
