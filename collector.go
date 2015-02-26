@@ -25,6 +25,7 @@ func InitCollector(workerCount int) {
 	// Real endpoints
 	endpoints["website"] = WebsiteEndpoint
 	endpoints["apns"] = ApnsEndpoint
+	endpoints["cancel"] = CancelEndpoint
 
 	// Global values
 	requests = make(map[string]*WorkRequest)
