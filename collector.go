@@ -65,6 +65,9 @@ func InitCollector(workerCount int) {
 				}
 				return
 			case wr := <- collectRequest:
+				if oldwr, ok := requests[wr.Uid] ; ok {
+					oldwr.Cancel <- true
+				}
 				requests[wr.Uid] = wr
 				go wr.StartTimer()
 			case <- backup:
@@ -78,5 +81,6 @@ func InitCollector(workerCount int) {
 
 // Shutdown collector
 func StopCollector() {
+	fmt.Println("")
 	collectorQuit <- true
 }

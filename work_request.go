@@ -11,10 +11,10 @@ type WorkRequest struct {
 	Token string     `json:"token"`
 	Timestamp int64  `json:"timestamp"`
 	Testing bool     `json:"testing"` // Just for apple push notes brah
+	Cancel chan bool
 }
 
 
-// Construct a new work request (this is for testing purposes)
 func NewWorkRequest(uid, endpoint, token, payload string, timestamp int64) *WorkRequest {
 	return &WorkRequest{
 		Uid: uid,
@@ -23,26 +23,19 @@ func NewWorkRequest(uid, endpoint, token, payload string, timestamp int64) *Work
 		Token: token,
 		Timestamp: timestamp,
 		Testing: true,
+		Cancel: make(chan bool),
 	}
 }
 
-
-// Waiting process
 func (wr *WorkRequest) StartTimer() {
-	timeout := make(chan bool)
-
-	// Start listening routine
-	go func() {
-		<- timeout
-		workQueue <- wr
-	}()
-
-	// Trigger the timeout in the listening routine after sleeping
 	sleepTime := wr.Timestamp - time.Now().Unix()
-	if sleepTime <= 0 {
-		timeout <- true
-	} else {
-		time.Sleep(time.Duration(sleepTime) * time.Second)
-		timeout <- true
+	timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
+
+	// Wait for a cancel or for the timer to expire
+	select {
+	case <- wr.Cancel:
+		timer.Stop()
+	case <- timer.C:
+		workQueue <- wr
 	}
 }
