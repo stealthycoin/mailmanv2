@@ -57,6 +57,10 @@ func PrintlnEndpoint(wr *WorkRequest) {
 // to effectivly cancel the previous message wiht that hash
 func CancelEndpoint(wr *WorkRequest) {}
 
+func PhoneEndpoint(wr *WorkRequest) {
+	ApnsEndpoint(wr) // Suave
+}
+
 func ApnsEndpoint(wr *WorkRequest) {
 	payload := apns.NewPayload()
 	payload.Alert = wr.Payload
