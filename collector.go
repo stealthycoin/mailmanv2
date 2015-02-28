@@ -66,6 +66,7 @@ func InitCollector(workerCount int) {
 				return
 			case wr := <- collectRequest:
 				if oldwr, ok := requests[wr.Uid] ; ok {
+					fmt.Println(oldwr)
 					oldwr.Cancel <- true
 				}
 				requests[wr.Uid] = wr

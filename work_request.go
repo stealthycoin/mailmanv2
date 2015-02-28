@@ -1,6 +1,7 @@
 package main
 
 import (
+"log"
 	"time"
 )
 
@@ -30,12 +31,16 @@ func NewWorkRequest(uid, endpoint, token, payload string, timestamp int64) *Work
 func (wr *WorkRequest) StartTimer() {
 	sleepTime := wr.Timestamp - time.Now().Unix()
 	timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
-
-	// Wait for a cancel or for the timer to expire
-	select {
-	case <- wr.Cancel:
-		timer.Stop()
-	case <- timer.C:
+	log.Println(sleepTime, wr)
+	if sleepTime <= 0 {
 		workQueue <- wr
+	} else {
+		// Wait for a cancel or for the timer to expire
+		select {
+		case <- wr.Cancel:
+			timer.Stop()
+		case <- timer.C:
+			workQueue <- wr
+		}
 	}
 }

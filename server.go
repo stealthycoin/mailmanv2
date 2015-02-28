@@ -23,9 +23,9 @@ func main() {
 
 	// Init all the components
 	InitConfig()
-	InitPersist()
 	wc, _ := strconv.Atoi(config["workers"])
 	InitCollector(wc)
+	InitPersist()
 
 	// Handler function for requests
 	http.HandleFunc("/push/", func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func main() {
 			log.Println(err)
 			w.WriteHeader(500)
 		} else {
-			log.Println(wr)
+			wr.Cancel = make(chan bool)
 			collectRequest <- &wr
 			w.WriteHeader(200)
 		}
