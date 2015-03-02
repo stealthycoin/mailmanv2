@@ -26,30 +26,12 @@ func main() {
 
 	// Init all the components
 	collector.InitConfig()
-	wc, _ := strconv.Atoi(config["workers"])
+	wc, _ := strconv.Atoi(collector.Config["workers"])
 	collector.InitCollector(wc)
 	collector.InitPersist()
 
 	// Handler function for requests
-	http.HandleFunc("/push/", func(w http.ResponseWriter, r *http.Request) {
-		// Recover from errors
-		defer func() {
-			if rec := recover() ; rec != nil {
-				log.Println(rec)
-			}
-		}()
-
-		var wr WorkRequest
-		err := json.Unmarshal([]byte(r.FormValue("work")), &wr)
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(500)
-		} else {
-			wr.Cancel = make(chan bool)
-			collector.collectRequest <- &wr
-			w.WriteHeader(200)
-		}
-	})
+	http.HandleFunc("/push/", collector.RequestHandler)
 
 	http.ListenAndServe(":8003", nil)
 }

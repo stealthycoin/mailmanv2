@@ -88,6 +88,27 @@ func InitCollector(workerCount int) {
 	}()
 }
 
+func RequestHandler(w http.ResponseWriter, r *http.Request) {
+	// Recover from errors
+	defer func() {
+		if rec := recover() ; rec != nil {
+			log.Println(rec)
+		}
+	}()
+
+	var wr WorkRequest
+	err := json.Unmarshal([]byte(r.FormValue("work")), &wr)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(500)
+	} else {
+		wr.Cancel = make(chan bool)
+		collector.collectRequest <- &wr
+		w.WriteHeader(200)
+	}
+
+}
+
 // Shutdown collector
 func StopCollector() {
 	collectorQuit <- true
