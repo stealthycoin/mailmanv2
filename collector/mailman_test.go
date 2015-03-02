@@ -34,7 +34,7 @@ func TestBulk(t *testing.T) {
 		delay := rand.Intn(10) + 1
 
 		target := time.Now().Unix() + int64(delay) * 1
-		collectRequest <- NewWorkRequest(strconv.Itoa(i), "testtime", "", strconv.FormatInt(target, 10), target)
+		CollectRequest <- NewWorkRequest(strconv.Itoa(i), "testtime", "", strconv.FormatInt(target, 10), target)
 	}
 
 	// Wait for the results and print them out for now
@@ -61,8 +61,8 @@ func TestBulk(t *testing.T) {
 
 func TestReplace(t *testing.T) {
 	InitCollector(2)
-	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message1", time.Now().Unix() + 1)
-	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message2", time.Now().Unix() + 2)
+	CollectRequest <- NewWorkRequest("ID", "testpayload", "0", "message1", time.Now().Unix() + 1)
+	CollectRequest <- NewWorkRequest("ID", "testpayload", "0", "message2", time.Now().Unix() + 2)
 
 	result := <- TestResults
 	if result == "message1" {
@@ -73,7 +73,7 @@ func TestReplace(t *testing.T) {
 
 func TestBackup(t *testing.T) {
 	InitCollector(1)
-	collectRequest <- NewWorkRequest("ID", "testpayload", "", "TURTLE POWER", time.Now().Unix() + 3)
+	CollectRequest <- NewWorkRequest("ID", "testpayload", "", "TURTLE POWER", time.Now().Unix() + 3)
 	BackupRequests()
 	LoadRequests()
 	if (requests["ID"].Payload != "TURTLE POWER") {
@@ -86,7 +86,7 @@ func TestBackup(t *testing.T) {
 func TestWebsiteDelivery(t *testing.T) {
 	InitCollector(1)
 
-	collectRequest <- NewWorkRequest("ID", "website", "3", `{"title":"You have earned the Selfie badge", "img": "https://www.hearthapp.net/static/images/badge/selfie.png", "imgwidth": 60, "content": "Upload a profile picture for the first time."}`, time.Now().Unix() + 5)
+	CollectRequest <- NewWorkRequest("ID", "website", "3", `{"title":"You have earned the Selfie badge", "img": "https://www.hearthapp.net/static/images/badge/selfie.png", "imgwidth": 60, "content": "Upload a profile picture for the first time."}`, time.Now().Unix() + 5)
 	time.Sleep(time.Duration(6) * time.Second)
 
 	StopCollector()
@@ -96,9 +96,9 @@ func TestWebsiteDelivery(t *testing.T) {
 func TestCancel(t *testing.T) {
 	InitCollector(1)
 	fmt.Println("Testing Cancel")
-	collectRequest <- NewWorkRequest("ID", "testpayload", "0", "message", time.Now().Unix() + 1) // Deliver in 1 seconds
-	collectRequest <- NewWorkRequest("ID", "cancel", "0", "n/a", 0) // Cancel the message coming in 1 second
-	collectRequest <- NewWorkRequest("ID2", "testpayload", "0", "yay", time.Now().Unix() + 2) // Deliver in 2 seconds
+	CollectRequest <- NewWorkRequest("ID", "testpayload", "0", "message", time.Now().Unix() + 1) // Deliver in 1 seconds
+	CollectRequest <- NewWorkRequest("ID", "cancel", "0", "n/a", 0) // Cancel the message coming in 1 second
+	CollectRequest <- NewWorkRequest("ID2", "testpayload", "0", "yay", time.Now().Unix() + 2) // Deliver in 2 seconds
 
 	// Should get yay since message was canceled
 	result := <- TestResults

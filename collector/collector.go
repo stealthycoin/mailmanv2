@@ -13,7 +13,7 @@ var (
 	workQueue chan *WorkRequest
 	workers []*Worker
 	collectorQuit chan bool
-	collectRequest chan *WorkRequest
+	CollectRequest chan *WorkRequest
 	backup chan bool
 	wg sync.WaitGroup
 )
@@ -40,7 +40,7 @@ func InitCollector(workerCount int) {
 	workers = make([]*Worker, 0, 0)
 
 	collectorQuit = make(chan bool)
-	collectRequest = make(chan *WorkRequest)
+	CollectRequest = make(chan *WorkRequest)
 	backup = make(chan bool)
 
 	for i := 1 ; i <= workerCount ; i++ {
@@ -72,7 +72,7 @@ func InitCollector(workerCount int) {
 					worker.Quit <- true
 				}
 				return
-			case wr := <- collectRequest:
+			case wr := <- CollectRequest:
 				if oldwr, ok := requests[wr.Uid] ; ok {
 					oldwr.Cancel <- true
 				}

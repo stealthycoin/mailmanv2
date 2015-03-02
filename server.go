@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	_ "github.com/lib/pq"
 	"database/sql"
+	"bitbucket.org/mailman/collector"
 )
 
 var (
@@ -22,10 +23,10 @@ func main() {
 	db = tdb
 
 	// Init all the components
-	InitConfig()
+	collector.InitConfig()
 	wc, _ := strconv.Atoi(config["workers"])
-	InitCollector(wc)
-	InitPersist()
+	collector.InitCollector(wc)
+	collector.InitPersist()
 
 	// Handler function for requests
 	http.HandleFunc("/push/", func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +44,7 @@ func main() {
 			w.WriteHeader(500)
 		} else {
 			wr.Cancel = make(chan bool)
-			collectRequest <- &wr
+			collector.collectRequest <- &wr
 			w.WriteHeader(200)
 		}
 	})
