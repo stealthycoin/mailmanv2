@@ -15,11 +15,16 @@ _	"encoding/json"
 )
 
 var (
+	db *sql.DB
 	TestResults chan string
 )
 
 type endpoint func(wr *WorkRequest)
 
+
+func SetDb(newdb *sql.DB) {
+	db = newdb
+}
 
 // *****************
 // Testing endpoints

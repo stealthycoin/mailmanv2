@@ -21,6 +21,8 @@ func main() {
 		log.Fatal(err)
 	}
 	db = tdb
+	collector.SetDb(db)
+
 
 	// Init all the components
 	collector.InitConfig()
