@@ -92,7 +92,7 @@ func ApnsEndpoint(wr *WorkRequest) {
 
 	// Create the client based on whether we are testing or not
 	var client *apns.Client
-	wr.Testing = true
+
 	if testing == "testing" {
 		fmt.Println(Config["apple_test_push_cert"], Config["apple_test_push_cert"])
 		client = apns.NewClient("gateway.sandbox.push.apple.com:2195",
