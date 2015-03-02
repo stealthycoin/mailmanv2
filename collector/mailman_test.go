@@ -7,13 +7,8 @@ import (
 	"fmt"
 	"time"
 	"regexp"
-	"database/sql"
 )
 
-
-var (
-	db *sql.DB
-)
 
 func init() {
 	InitPersist()
