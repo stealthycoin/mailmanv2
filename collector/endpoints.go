@@ -9,7 +9,9 @@ import (
 	"net/url"
 	"net/http"
 	"crypto/tls"
-_	"encoding/json"
+	_ "encoding/json"
+	_ "github.com/lib.pq"
+	"database/sql"
 	"github.com/anachronistic/apns"
 //	"github.com/alexjlockwood/gcm" // No idea if this works
 )
