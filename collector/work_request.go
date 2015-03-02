@@ -1,7 +1,6 @@
 package collector
 
 import (
-"log"
 	"time"
 )
 
@@ -31,7 +30,6 @@ func NewWorkRequest(uid, endpoint, token, payload string, timestamp int64) *Work
 func (wr *WorkRequest) StartTimer() {
 	sleepTime := wr.Timestamp - time.Now().Unix()
 	timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
-	log.Println(sleepTime, wr)
 	if sleepTime <= 0 {
 		workQueue <- wr
 	} else {
