@@ -10,7 +10,6 @@ type WorkRequest struct {
 	Payload string   `json:"payload"`
 	Token string     `json:"token"`
 	Timestamp int64  `json:"timestamp"`
-	Testing bool     `json:"testing"` // Just for apple push notes brah
 	Cancel chan bool
 }
 
@@ -22,7 +21,6 @@ func NewWorkRequest(uid, endpoint, token, payload string, timestamp int64) *Work
 		Payload: payload,
 		Token: token,
 		Timestamp: timestamp,
-		Testing: true,
 		Cancel: make(chan bool),
 	}
 }
