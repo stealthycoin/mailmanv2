@@ -37,7 +37,7 @@ func InitPersist() {
 
 func LoadRequests() {
 	// Read gob into requests
-	file, err := os.Open(config["backup_path"])
+	file, err := os.Open(Config["backup_path"])
 	if err != nil {
 		log.Println(err)
 		return
@@ -59,9 +59,9 @@ func LoadRequests() {
 
 func BackupRequests() {
 	// Check if backup file already exists
-	file, err := os.Create(config["backup_path"])
+	file, err := os.Create(Config["backup_path"])
 	if err != nil {
-		log.Println(err, config["backup_path"])
+		log.Println(err, Config["backup_path"])
 	}
 	defer file.Close()
 

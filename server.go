@@ -4,7 +4,6 @@ import (
 	"log"
 	"strconv"
 	"net/http"
-	"encoding/json"
 	_ "github.com/lib/pq"
 	"database/sql"
 	"bitbucket.org/mailman/collector"

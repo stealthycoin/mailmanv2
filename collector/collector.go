@@ -2,7 +2,10 @@ package collector
 
 import (
 	"fmt"
+	"log"
 	"sync"
+	"net/http"
+	"encoding/json"
 )
 
 // Package Variables
@@ -50,7 +53,6 @@ func InitCollector(workerCount int) {
 		w.Start()
 		workers = append(workers, w)
 	}
-
 
 	// Wait for work requests (this happens after a work request timer has expired)
 	go func() {
@@ -103,7 +105,7 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	} else {
 		wr.Cancel = make(chan bool)
-		collector.collectRequest <- &wr
+		CollectRequest <- &wr
 		w.WriteHeader(200)
 	}
 

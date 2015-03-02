@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"crypto/tls"
 	_ "encoding/json"
-	_ "github.com/lib.pq"
 	"database/sql"
 	"github.com/anachronistic/apns"
 //	"github.com/alexjlockwood/gcm" // No idea if this works
@@ -93,14 +92,14 @@ func ApnsEndpoint(wr *WorkRequest) {
 	var client *apns.Client
 	wr.Testing = true
 	if (wr.Testing) {
-		fmt.Println(config["apple_test_push_cert"], config["apple_test_push_cert"])
+		fmt.Println(Config["apple_test_push_cert"], Config["apple_test_push_cert"])
 		client = apns.NewClient("gateway.sandbox.push.apple.com:2195",
-			config["apple_push_test_cert"],
-			config["apple_push_test_key"])
+			Config["apple_push_test_cert"],
+			Config["apple_push_test_key"])
 	} else {
 		client = apns.NewClient("gateway.push.apple.com:2195",
-			config["apple_push_cert"],
-			config["apple_push_key"])
+			Config["apple_push_cert"],
+			Config["apple_push_key"])
 	}
 	// Ignoring errors like a good boi
 	client.Send(pn)
@@ -118,7 +117,7 @@ func ApnsEndpoint(wr *WorkRequest) {
 // 	regIDs := []string{token}
 // 	msg := gcm.NewMessage(data, regIDs...)
 
-// 	sender := &gcm.Sender{ApiKey: config["gcm"]}
+// 	sender := &gcm.Sender{ApiKey: Config["gcm"]}
 
 // 	response, err := sender.Send(msg, 2)
 // 	if err != nil {

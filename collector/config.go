@@ -14,11 +14,11 @@ import (
 // Config variables
 var (
 	configPath string = "mailman.conf"
-	config map[string]string
+	Config map[string]string
 )
 
 func InitConfig() {
-	config = make(map[string]string)
+	Config = make(map[string]string)
 
 	// Listen for USR1 signal to reload the conf file
 	reload := make(chan os.Signal, 1)
@@ -36,7 +36,7 @@ func InitConfig() {
 	go func() {
 		for {
 			td := 360 // Default timedelay to an hour
-			if delay, ok := config["backup_delay"] ; ok {
+			if delay, ok := Config["backup_delay"] ; ok {
 				td, _ = strconv.Atoi(delay)
 			}
 			time.Sleep(time.Duration(td) * time.Second)
@@ -46,13 +46,13 @@ func InitConfig() {
 }
 
 func LoadConfig() {
-	log.Println("Loading config.")
-	// Defaults set here and will be overrided by the config file
-	config["backup_path"] = "backup.gob"
+	log.Println("Loading Config.")
+	// Defaults set here and will be overrided by the Config file
+	Config["backup_path"] = "backup.gob"
 
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Println("Failed to open config file: ", configPath)
+		log.Println("Failed to open Config file: ", configPath)
 		return
 	}
 	lines := strings.Split(string(data), "\n")
@@ -64,7 +64,7 @@ func LoadConfig() {
 		line = strings.Trim(line, " ")
 		if len(line) > 0 {
 			kv := strings.Split(line, "=")
-			config[strings.Trim(kv[0], " ")] = strings.Trim(kv[1], " ")
+			Config[strings.Trim(kv[0], " ")] = strings.Trim(kv[1], " ")
 		}
 	}
 }
