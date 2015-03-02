@@ -81,7 +81,9 @@ func ApnsEndpoint(wr *WorkRequest) {
 		log.Println(err)
 		return
 	}
-	err = db.QueryRow(`select registration_id from push_notifications_apnsdevice where user_id = $1`, id).Scan(&pn.DeviceToken)
+	var testing string
+	err = db.QueryRow(`select registration_id, name from push_notifications_apnsdevice
+                       where user_id = $1`, id).Scan(&pn.DeviceToken, &testing)
 	if err != nil {
 		log.Println(err)
 		return
@@ -91,7 +93,7 @@ func ApnsEndpoint(wr *WorkRequest) {
 	// Create the client based on whether we are testing or not
 	var client *apns.Client
 	wr.Testing = true
-	if (wr.Testing) {
+	if testing == "true" {
 		fmt.Println(Config["apple_test_push_cert"], Config["apple_test_push_cert"])
 		client = apns.NewClient("gateway.sandbox.push.apple.com:2195",
 			Config["apple_push_test_cert"],
