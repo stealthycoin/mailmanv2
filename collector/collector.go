@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// Package Variables
 var (
 	endpoints map[string]endpoint
 	requests map[string]*WorkRequest
@@ -73,7 +74,6 @@ func InitCollector(workerCount int) {
 				return
 			case wr := <- collectRequest:
 				if oldwr, ok := requests[wr.Uid] ; ok {
-					fmt.Println("replacing", oldwr)
 					oldwr.Cancel <- true
 				}
 				requests[wr.Uid] = wr
