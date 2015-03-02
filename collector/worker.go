@@ -30,6 +30,7 @@ func (w* Worker) Start() {
 				endpoints[wr.Endpoint](wr)
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)
+				wg.Done()
 				return
 			}
 		}

@@ -1,6 +1,9 @@
 package collector
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 var (
 	endpoints map[string]endpoint
@@ -11,6 +14,7 @@ var (
 	collectorQuit chan bool
 	collectRequest chan *WorkRequest
 	backup chan bool
+	wg sync.WaitGroup
 )
 
 
@@ -24,7 +28,7 @@ func InitCollector(workerCount int) {
 
 	// Real endpoints
 	endpoints["website"] = WebsiteEndpoint
-	endpoints["phone"] = PhoneEndPoint
+	endpoints["phone"] = PhoneEndpoint
 	endpoints["apns"] = ApnsEndpoint
 	endpoints["cancel"] = CancelEndpoint
 
@@ -44,6 +48,7 @@ func InitCollector(workerCount int) {
 		workers = append(workers, w)
 	}
 
+	wg.Add(workerCount)
 
 	// Wait for work requests (this happens after a work request timer has expired)
 	go func() {
@@ -52,6 +57,7 @@ func InitCollector(workerCount int) {
 			case work := <- workQueue:
 				// Make sure work is still valid
 				if work == requests[work.Uid] {
+					delete(requests, work.Uid)
 					go func() {
 						// Get a worker from the worker queue
 						worker := <- workerQueue
@@ -67,7 +73,7 @@ func InitCollector(workerCount int) {
 				return
 			case wr := <- collectRequest:
 				if oldwr, ok := requests[wr.Uid] ; ok {
-					fmt.Println(oldwr)
+					fmt.Println("replacing", oldwr)
 					oldwr.Cancel <- true
 				}
 				requests[wr.Uid] = wr
@@ -83,6 +89,7 @@ func InitCollector(workerCount int) {
 
 // Shutdown collector
 func StopCollector() {
-	fmt.Println("")
 	collectorQuit <- true
+	wg.Wait()
+	fmt.Println("All workers shut down.")
 }
