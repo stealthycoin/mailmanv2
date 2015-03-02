@@ -43,13 +43,14 @@ func InitCollector(workerCount int) {
 	CollectRequest = make(chan *WorkRequest)
 	backup = make(chan bool)
 
+	wg.Add(workerCount)
+
 	for i := 1 ; i <= workerCount ; i++ {
 		w := NewWorker(i, workerQueue)
 		w.Start()
 		workers = append(workers, w)
 	}
 
-	wg.Add(workerCount)
 
 	// Wait for work requests (this happens after a work request timer has expired)
 	go func() {
