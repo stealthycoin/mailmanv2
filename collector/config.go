@@ -32,10 +32,10 @@ func InitConfig() {
 
 	LoadConfig()
 
-	// Backu every td seconds
+	// Backup every td seconds
 	go func() {
 		for {
-			td := 360 // Default timedelay to an hour
+			td := 3600 // Default timedelay to an hour
 			if delay, ok := Config["backup_delay"] ; ok {
 				td, _ = strconv.Atoi(delay)
 			}
