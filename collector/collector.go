@@ -5,6 +5,7 @@ import (
 	"log"
 	"sync"
 	"net/http"
+	"net/url"
 	"encoding/json"
 )
 
@@ -90,6 +91,7 @@ func InitCollector(workerCount int) {
 	}()
 }
 
+// Handle a work request being sent
 func RequestHandler(w http.ResponseWriter, r *http.Request) {
 	// Recover from errors
 	defer func() {
@@ -109,6 +111,22 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}
 
+}
+
+// Show me the goods
+func ShowMeTheGoods(w http.ResponseWriter, r *http.Request) {
+	u, _ := url.Parse(r.URL.String())
+
+	if u.Query().Get("password") == "pancakesauce" {
+		if len(requests) == 0 {
+			fmt.Fprintf(w, "No mail")
+		}
+		for _, v := range requests {
+			fmt.Fprintf(w, "%v", v)
+		}
+	} else {
+		fmt.Fprintf(w, "404 page not found")
+	}
 }
 
 // Shutdown collector
