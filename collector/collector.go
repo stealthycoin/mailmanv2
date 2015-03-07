@@ -122,7 +122,7 @@ func ShowMeTheGoods(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "No mail")
 		}
 		for _, v := range requests {
-			fmt.Fprintf(w, "%v", v)
+			fmt.Fprintf(w, "%v\n", v)
 		}
 	} else {
 		fmt.Fprintf(w, "404 page not found")
