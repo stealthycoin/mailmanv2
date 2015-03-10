@@ -113,6 +113,18 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func Remove(w http.ResponseWriter, r *http.Request) {
+	u, _ := url.Parse(r.URL.String())
+	if u.Query().Get("password") == "pancakesauce" {
+		hash := u.Query().Get("hash")
+		if r, ok := requests[hash] ; ok {
+			r.Cancel <- true
+			delete(requests, hash)
+		}
+	}
+	fmt.Fprintf(w, "<script>window.close()</script>")
+}
+
 // Show me the goods
 func ShowMeTheGoods(w http.ResponseWriter, r *http.Request) {
 	u, _ := url.Parse(r.URL.String())
@@ -121,8 +133,8 @@ func ShowMeTheGoods(w http.ResponseWriter, r *http.Request) {
 		if len(requests) == 0 {
 			fmt.Fprintf(w, "No mail")
 		}
-		for _, v := range requests {
-			fmt.Fprintf(w, "%v\n", v)
+		for _, mail := range requests {
+			fmt.Fprintf(w, "<div onclick='window.open(\"/remove?password=pancakesauce&hash=%v\");location.reload();' style='margin-right:2px;text-align:center;display:inline-block;width:1em;border:1px solid black;border-radius:50%%'>x</div>%v %v %v %v<br/>", mail.Uid, mail.Endpoint, mail.Token, mail.Timestamp, mail.Payload)
 		}
 	} else {
 		fmt.Fprintf(w, "404 page not found")

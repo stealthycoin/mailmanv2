@@ -32,7 +32,8 @@ func main() {
 	// Handler function for requests
 	http.HandleFunc("/push/", collector.RequestHandler)
 
-	// Handler
+	// Handlers
+	http.HandleFunc("/remove", collector.Remove)
 	http.HandleFunc("/showmethegoods", collector.ShowMeTheGoods)
 
 	http.ListenAndServe(":8003", nil)
