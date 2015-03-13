@@ -83,7 +83,7 @@ func ApnsEndpoint(wr *WorkRequest) {
 	}
 	var testing string
 	err = db.QueryRow(`select registration_id, name from push_notifications_apnsdevice
-                       where user_id = $1`, id).Scan(&pn.DeviceToken, &testing)
+                       where user_id = $1 and active = TRUE`, id).Scan(&pn.DeviceToken, &testing)
 	if err != nil {
 		log.Println(err)
 		return
