@@ -12,7 +12,7 @@ import (
 	_ "encoding/json"
 	"database/sql"
 	"github.com/anachronistic/apns"
-//	"github.com/alexjlockwood/gcm" // No idea if this works
+	"github.com/alexjlockwood/gcm" // No idea if this works
 )
 
 var (
@@ -64,10 +64,65 @@ func PrintlnEndpoint(wr *WorkRequest) {
 func CancelEndpoint(wr *WorkRequest) {}
 
 func PhoneEndpoint(wr *WorkRequest) {
-	ApnsEndpoint(wr) // Suave
+	// First we need to fetch user profile
+	var id int64
+	err := db.QueryRow(`select user_id from main_userprofile where id = $1`, wr.Token).Scan(&id)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Fetch all the apns devices
+	apns_devices := make([]Phone,0,0)
+	rows, err := db.Query(`select registration_id, name from push_notifications_apnsdevice
+                           where user_id = $1 and active = TRUE`, id)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		d := Phone{"","apple",""}
+		err := rows.Scan(&d.reg_id, &d.name)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		apns_devices = append(apns_devices, d)
+	}
+
+	// Fetch all gcm devices
+	gcm_devices := make([]Phone,0,0)
+	rows, err = db.Query(`select registration_id, name from push_notifications_gcmdevice
+                           where user_id = $1 and active = TRUE`, id)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		d := Phone{"","android",""}
+		err := rows.Scan(&d.reg_id, &d.name)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		gcm_devices = append(gcm_devices, d)
+	}
+
+
+	// Send apns messages
+	for _, device := range apns_devices {
+		ApnsEndpoint(device, wr) // Suave
+	}
+
+	// Send gcm messages
+	for _, device := range gcm_devices {
+		GcmEndpoint(device, wr)
+	}
 }
 
-func ApnsEndpoint(wr *WorkRequest) {
+func ApnsEndpoint(device Phone, wr *WorkRequest) {
 	payload := apns.NewPayload()
 	payload.Alert = wr.Payload
 	payload.Badge = 1
@@ -114,19 +169,19 @@ func ApnsEndpoint(wr *WorkRequest) {
 }
 
 //GCM is totally borked right now
-// func GcmEndpoint(wr *WorkRequest) {
-// 	data := map[string]interface{}{"score": "5x1", "time": "15:10", "body": body}
-// 	regIDs := []string{token}
-// 	msg := gcm.NewMessage(data, regIDs...)
+func GcmEndpoint(device Phone, wr *WorkRequest) {
+	data := map[string]interface{}{"title":"Hearth","message": wr.Payload,"msgcnt":1, "notId": time.Now().Unix()}
+	regIDs := []string{device.reg_id}
+	msg := gcm.NewMessage(data, regIDs...)
 
-// 	sender := &gcm.Sender{ApiKey: Config["gcm"]}
+	sender := &gcm.Sender{ApiKey: Config["gcm"]}
 
-// 	response, err := sender.Send(msg, 2)
-// 	if err != nil {
-// 		fmt.Println("Failed to send message:", err)
-// 	}
-// 	fmt.Println(response)
-// }
+	response, err := sender.Send(msg, 2)
+	if err != nil {
+		fmt.Println("Failed to send message:", err)
+	}
+	fmt.Println(response)
+}
 
 
 

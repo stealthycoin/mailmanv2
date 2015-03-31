@@ -34,7 +34,6 @@ func InitCollector(workerCount int) {
 	// Real endpoints
 	endpoints["website"] = WebsiteEndpoint
 	endpoints["phone"] = PhoneEndpoint
-	endpoints["apns"] = ApnsEndpoint
 	endpoints["cancel"] = CancelEndpoint
 
 	// Global values
