@@ -161,14 +161,14 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 	// Ignoring errors like a good boi
 	client.Send(pn)
 
-	pn.PayloadString()
+	// pn.PayloadString()
 	// fmt.Println("  Token:", wr.Token)
 	// fmt.Println("  Alert:", alert)
 	// fmt.Println("Success:", resp.Success)
 	// fmt.Println("  Error:", resp.Error)
 }
 
-//GCM is totally borked right now
+// GCM is working!
 func GcmEndpoint(device Phone, wr *WorkRequest) {
 	data := map[string]interface{}{"title":"Hearth","message": wr.Payload,"msgcnt":1, "notId": time.Now().Unix()}
 	regIDs := []string{device.reg_id}
