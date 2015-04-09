@@ -9,10 +9,10 @@ import (
 	"net/url"
 	"net/http"
 	"crypto/tls"
-	_ "encoding/json"
+	"encoding/json"
 	"database/sql"
 	"github.com/anachronistic/apns"
-	"github.com/alexjlockwood/gcm" // No idea if this works
+	"github.com/alexjlockwood/gcm"
 )
 
 var (
@@ -123,15 +123,25 @@ func PhoneEndpoint(wr *WorkRequest) {
 }
 
 func ApnsEndpoint(device Phone, wr *WorkRequest) {
+
+	// Unmarshal the payload
+	var dict interface{}
+	err := json.Unmarshal([]byte(wr.Payload), &dict)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+
 	payload := apns.NewPayload()
-	payload.Alert = wr.Payload
+	payload.Alert = dict.(map[string]interface{})["message"].(string)
 	payload.Badge = 1
-	payload.Sound = "bingbong.aiff"
+	payload.Sound = "default"
 
 	pn := apns.NewPushNotification()
 	// Getting the device token is a matter of fetching a lot of stuff from the database make this one query later
 	var id int64
-	err := db.QueryRow(`select user_id from main_userprofile where id = $1`, wr.Token).Scan(&id)
+	err = db.QueryRow(`select user_id from main_userprofile where id = $1`, wr.Token).Scan(&id)
 	if err != nil {
 		log.Println(err)
 		return
@@ -144,6 +154,12 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 		return
 	}
 	pn.AddPayload(payload)
+	// Add custom keys to the pn
+	for key, val := range dict.(map[string]interface{}) {
+		if key != "message" { // Don't copy the message twice since we are sending it in Alert
+			pn.Set(key, val)
+		}
+	}
 
 	// Create the client based on whether we are testing or not
 	var client *apns.Client
