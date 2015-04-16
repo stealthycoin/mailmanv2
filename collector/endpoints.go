@@ -125,7 +125,7 @@ func PhoneEndpoint(wr *WorkRequest) {
 func ApnsEndpoint(device Phone, wr *WorkRequest) {
 
 	// Unmarshal the payload
-	var dict interface{}
+	var dict map[string]interface{}
 	err := json.Unmarshal([]byte(wr.Payload), &dict)
 	if err != nil {
 		log.Println(err)
