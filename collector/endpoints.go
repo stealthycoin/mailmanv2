@@ -134,7 +134,7 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 
 
 	payload := apns.NewPayload()
-	payload.Alert = dict.(map[string]interface{})["message"].(string)
+	payload.Alert = dict["message"].(string)
 	payload.Badge = 1
 	payload.Sound = "default"
 
@@ -155,7 +155,7 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 	}
 	pn.AddPayload(payload)
 	// Add custom keys to the pn
-	for key, val := range dict.(map[string]interface{}) {
+	for key, val := range dict {
 		if key != "message" { // Don't copy the message twice since we are sending it in Alert
 			pn.Set(key, val)
 		}
