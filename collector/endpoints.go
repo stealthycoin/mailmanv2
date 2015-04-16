@@ -161,6 +161,9 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 		}
 	}
 
+	// SHIT SHIT SHIT
+	pn.Set("unparsed", wr.Payload)
+
 	// Create the client based on whether we are testing or not
 	var client *apns.Client
 
