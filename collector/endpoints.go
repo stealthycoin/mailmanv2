@@ -115,7 +115,7 @@ func PhoneEndpoint(wr *WorkRequest) {
 
 	// Send apns messages
 	for _, device := range apns_devices {
-		ApnsEndpoint(device, wr) // Suave
+		ApnsEndpoint(device, wr)
 	}
 
 	// Send gcm messages
