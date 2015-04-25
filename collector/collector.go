@@ -76,11 +76,34 @@ func InitCollector(workerCount int) {
 				}
 				return
 			case wr := <- CollectRequest:
-				if oldwr, ok := requests[wr.Uid] ; ok {
-					oldwr.Cancel <- true
+				// Check method
+				if wr.Method == "add" {
+					// Add a new work request, replacing any old one with the same uid
+					if oldwr, ok := requests[wr.Uid]; ok {
+						oldwr.Cancel <- true
+					}
+					requests[wr.Uid] = wr
+					go wr.StartTimer()
+				} else if wr.Method == "cancel" {
+					// Remove a work request with a given uid if it exists
+					if oldwr, ok := requests[wr.Uid]; ok {
+						oldwr.Cancel <- true
+					}
+				} else if wr.Method == "update" {
+					// Splice payloads together using templates man.
+					// if no previous work_request exists this is just an add
+					if oldwr, ok := requests[wr.Uid]; ok {
+						new_payload, err := tmpl_merge(oldwr.Payload, wr.Payload)
+						if err != nil {
+							log.Println(err)
+						} else {
+							wr.Payload = new_payload
+						}
+						oldwr.Cancel <- true
+					}
+					requests[wr.Uid] = wr
+					go wr.StartTimer()
 				}
-				requests[wr.Uid] = wr
-				go wr.StartTimer()
 			case <- backup:
 				// do some backup stuff
 				fmt.Println("backup")
