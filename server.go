@@ -15,7 +15,7 @@ var (
 
 func main() {
 	// Connect to the databse
-	tdb, err := sql.Open("postgres", "dbname=hearth user=hearth host=localhost password=A938CEA3C22F8FD93F4157D4A1AB3AF753452D743FEC6A8B27401972B3F9511F sslmode=disable")
+	tdb, err := sql.Open("postgres", "dbname=hearth user=hearth host=localhost password=A938CEA3C22F8FD93F4157D4A1AB3AF753452D743FEC6A8B27401972B3F9511F sslmode=required")
 //	tdb, err := sql.Open("postgres", "dbname=hearth user=hearth host=54.67.5.205 password=A938CEA3C22F8FD93F4157D4A1AB3AF753452D743FEC6A8B27401972B3F9511F sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
