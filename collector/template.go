@@ -1,4 +1,4 @@
-package collector
+package main
 
 import (
 	"strings"
@@ -48,7 +48,7 @@ func extract(field string) (string, string) {
 // Merges two templates together
 //
 func tmpl_merge(a, b string) (string, error) {
-	// Collect % indicies
+	// 	Collect % indicies
 	a_idxs, err := lex(a)
 	if err != nil {
 		log.Println(err)
@@ -58,13 +58,18 @@ func tmpl_merge(a, b string) (string, error) {
 		log.Println(err)
 	}
 
-	b_map := make(map[string]string)
+	// No templates here just return the second string
+	if len(b_idxs) == 0 && len(a_idxs) == 0 {
+		return b, nil
+	}
+
+	a_map := make(map[string]string)
 
 	// Map content for child template
 	for i, v := range b_idxs {
 		if i % 2 != 0 {
-			key, value := extract(b[b_idxs[i-1]:v])
-			b_map[key] = value
+			key, value := extract(a[a_idxs[i-1]:v])
+			a_map[key] = value
 		}
 	}
 
@@ -72,36 +77,73 @@ func tmpl_merge(a, b string) (string, error) {
 	var buffer bytes.Buffer
 
 	// Merge map into parent template
-	for i, v := range a_idxs {
+	for i, v := range b_idxs {
 		if i % 2 != 0 {
 			// Odd percent tag is a closing one
-			key, value := extract(a[a_idxs[i-1]:v])
-			if b_v, ok := b_map[key]; ok {
+			key, value := extract(b[b_idxs[i-1]:v])
+			if a_v, ok := a_map[key]; ok {
 				// Child template has the same key, merge
 				buffer.WriteString("%")
 				buffer.WriteString(key)
 				buffer.WriteString(" ")
 				buffer.WriteString(value)
 				buffer.WriteString(", ")
-				buffer.WriteString(b_v)
+				buffer.WriteString(a_v)
 			}
 		} else {
 			// Even template tag is an opening one, copy from last
 			// tag to this one
 			if i > 0 {
 				// Not first index
-				buffer.WriteString(a[a_idxs[i-1]:a_idxs[i]])
+				buffer.WriteString(b[b_idxs[i-1]:b_idxs[i]])
 			} else {
 				// First index
-				buffer.WriteString(a[:a_idxs[i]])
+				buffer.WriteString(b[:b_idxs[i]])
 			}
 		}
 	}
 
 	// If there were indicies we need to copy the last chunk from a into the buffer
-	if last := len(a_idxs); last > 0 {
-		buffer.WriteString(a[a_idxs[last-1]:])
+	if last := len(b_idxs); last > 0 {
+		buffer.WriteString(b[b_idxs[last-1]:])
 	}
 
 	return buffer.String(), nil
+}
+
+//
+// Slice out the template tags
+//
+func splice(tmpl string) string {
+	// Collect % indicies
+	idxs, err := lex(tmpl)
+	if err != nil {
+		log.Println(err)
+	}
+
+	// No tags to remove
+	if len(idxs) == 0 {
+		return tmpl
+	}
+
+	var buffer bytes.Buffer
+
+	for i, v := range idxs {
+		if i % 2 != 0 {
+			_, value := extract(tmpl[idxs[i-1]:v])
+			buffer.WriteString(value)
+		} else {
+			if i > 0 {
+				buffer.WriteString(tmpl[idxs[i-1]:idxs[i]])
+			} else {
+				buffer.WriteString(tmpl[:idxs[0]])
+			}
+		}
+	}
+
+	if last := len(idxs); last > 0 {
+		buffer.WriteString(tmpl[idxs[last-1]+1:])
+	}
+
+	return buffer.String()
 }
