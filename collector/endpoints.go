@@ -136,7 +136,7 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 
 
 	payload := apns.NewPayload()
-	payload.Alert = dict["message"].(string)
+	payload.Alert = tmpl_splice(dict["message"].(string))
 	payload.Badge = 1
 	payload.Sound = "default"
 
@@ -188,7 +188,7 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 
 // GCM is working!
 func GcmEndpoint(device Phone, wr *WorkRequest) {
-	data := map[string]interface{}{"title":"Hearth","message": wr.Payload,"msgcnt":1, "notId": time.Now().Unix()}
+	data := map[string]interface{}{"title":"Hearth","message": tmpl_splice(wr.Payload),"msgcnt":1, "notId": time.Now().Unix()}
 	regIDs := []string{device.reg_id}
 	msg := gcm.NewMessage(data, regIDs...)
 

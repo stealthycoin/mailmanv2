@@ -7,6 +7,7 @@ import (
 type WorkRequest struct {
 	Uid string       `json:"uid"`
 	Endpoint string  `json:"endpoint"`
+	Method string    `json:"method"`
 	Payload string   `json:"payload"`
 	Token string     `json:"token"`
 	Timestamp int64  `json:"timestamp"`
@@ -14,10 +15,11 @@ type WorkRequest struct {
 }
 
 
-func NewWorkRequest(uid, endpoint, token, payload string, timestamp int64) *WorkRequest {
+func NewWorkRequest(uid, endpoint, method, token, payload string, timestamp int64) *WorkRequest {
 	return &WorkRequest{
 		Uid: uid,
 		Endpoint: endpoint,
+		Method: method,
 		Payload: payload,
 		Token: token,
 		Timestamp: timestamp,
