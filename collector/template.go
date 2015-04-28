@@ -114,7 +114,7 @@ func tmpl_merge(a, b string) (string, error) {
 //
 // Slice out the template tags
 //
-func splice(tmpl string) string {
+func tmpl_splice(tmpl string) string {
 	// Collect % indicies
 	idxs, err := lex(tmpl)
 	if err != nil {
