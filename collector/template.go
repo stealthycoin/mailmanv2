@@ -66,7 +66,7 @@ func tmpl_merge(a, b string) (string, error) {
 	a_map := make(map[string]string)
 
 	// Map content for child template
-	for i, v := range b_idxs {
+	for i, v := range a_idxs {
 		if i % 2 != 0 {
 			key, value := extract(a[a_idxs[i-1]:v])
 			a_map[key] = value
