@@ -88,6 +88,7 @@ func InitCollector(workerCount int) {
 					// Remove a work request with a given uid if it exists
 					if oldwr, ok := requests[wr.Uid]; ok {
 						oldwr.Cancel <- true
+						delete(requests, wr.Uid)
 					}
 				} else if wr.Method == "update" {
 					// Splice payloads together using templates man.
