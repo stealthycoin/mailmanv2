@@ -13,15 +13,15 @@ var (
 	check_record chan record_query  // Check if a record exists
 )
 
-type MailHeap []mail_record
+type MailHeap []*mail_record
 
 type record_query struct {
-	id int64
+	id string
 	result chan bool
 }
 
 type mail_record struct {
-	Uid int64          // User ID
+	Uid string         // User ID
 	Last_alert int64   // Last time their were rang
 }
 
@@ -41,7 +41,7 @@ func (h MailHeap) Swap(i, j int ) {
 }
 
 func (h *MailHeap) Push(x interface{}) {
-	*h = append(*h, x.(mail_record))
+	*h = append(*h, x.(*mail_record))
 }
 
 func (h *MailHeap) Pop() interface{} {
@@ -56,7 +56,7 @@ func (h *MailHeap) Pop() interface{} {
 //
 // Checks to see if a record exists
 //
-func CheckRecord(id int64) bool {
+func CheckRecord(id string) bool {
 	respond := make(chan bool)
 	check_record <- record_query{id, respond}
 	if result := <- respond; result {
@@ -73,15 +73,16 @@ func StartRecords() {
 	// Heap for timing
 	h := &MailHeap{}
 	heap.Init(h)
-	var timer time.Timer
 	counting := false
+	var timer time.Timer
 
 	// Hashmap for quick-check
-	active_records := make(map[int64]int)
+	active_records := make(map[string]int)
 
 	// Init channels
-	file_record = make(chan *mail_record, 128)
+	file_record = make(chan *mail_record, 256)
 	check_record = make(chan record_query)
+	clean := make(chan bool)
 
 	go func() {
 		for {
@@ -97,13 +98,18 @@ func StartRecords() {
 
 				if !counting {
 					// If we aren't counting down start doing so now
-					timer.Reset(time.Minute * 5)
 					counting = true
+
+					go func() {
+						// Wait 5 minutes and then clean
+						<- time.After(5 * time.Minute)
+						clean <- true
+					}()
 				}
 
 
-			case <- timer.C:
-				// Timer went off time to delete elements
+			case <- clean:
+				// Timer went off time to clean records
 				now := time.Now().Unix()
 				done := false
 

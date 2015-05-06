@@ -112,19 +112,31 @@ func PhoneEndpoint(wr *WorkRequest) {
 		gcm_devices = append(gcm_devices, d)
 	}
 
+	beep := false
+	// Check if we should beep
+	if (CheckRecord(wr.Token)) {
+		beep = true
+	}
+
+	// Add a record
+	file_record <- &mail_record{
+		Uid: wr.Uid,
+		Last_alert: time.Now().Unix(),
+	}
+
 
 	// Send apns messages
 	for _, device := range apns_devices {
-		ApnsEndpoint(device, wr)
+		ApnsEndpoint(device, wr, beep)
 	}
 
 	// Send gcm messages
 	for _, device := range gcm_devices {
-		GcmEndpoint(device, wr)
+		GcmEndpoint(device, wr, beep)
 	}
 }
 
-func ApnsEndpoint(device Phone, wr *WorkRequest) {
+func ApnsEndpoint(device Phone, wr *WorkRequest, beep bool) {
 
 	// Unmarshal the payload
 	var dict map[string]interface{}
@@ -138,7 +150,9 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 	payload := apns.NewPayload()
 	payload.Alert = tmpl_splice(dict["message"].(string))
 	payload.Badge = 1
-	payload.Sound = "default"
+	if beep {
+		payload.Sound = "default"
+	}
 
 	pn := apns.NewPushNotification()
 	// Getting the device token is a matter of fetching a lot of stuff from the database make this one query later
@@ -187,8 +201,9 @@ func ApnsEndpoint(device Phone, wr *WorkRequest) {
 }
 
 // GCM is working!
-func GcmEndpoint(device Phone, wr *WorkRequest) {
-	data := map[string]interface{}{"title":"Hearth","message": tmpl_splice(wr.Payload),"msgcnt":1, "notId": time.Now().Unix()}
+func GcmEndpoint(device Phone, wr *WorkRequest, beep bool) {
+	beep = true // Doesnt work right now, just make the compiler happy
+	data := map[string]interface{}{"title":"Hearth","message": tmpl_splice(wr.Payload),"beep": beep,"msgcnt":1, "notId": time.Now().Unix()}
 	regIDs := []string{device.reg_id}
 	msg := gcm.NewMessage(data, regIDs...)
 
