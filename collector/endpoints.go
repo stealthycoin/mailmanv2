@@ -59,9 +59,6 @@ func PrintlnEndpoint(wr *WorkRequest) {
 // **********************
 // Production endpoints
 // **********************
-// This doesnt do anything, send a messag with a duplicate hash and this set as the endpoint
-// to effectivly cancel the previous message wiht that hash
-func CancelEndpoint(wr *WorkRequest) {}
 
 func PhoneEndpoint(wr *WorkRequest) {
 	// First we need to fetch user profile
