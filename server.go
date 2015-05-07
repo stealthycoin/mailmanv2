@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"flag"
 	"strconv"
 	"net/http"
 	_ "github.com/lib/pq"
@@ -10,15 +11,24 @@ import (
 )
 
 var (
+	local = flag.Bool("local", false, "Set when you want to connect to a local db")
 	db *sql.DB
 )
 
 func main() {
-	// Connect to the databse
-	tdb, err := sql.Open("postgres", "dbname=hearth user=hearth host=54.67.5.205 password=A938CEA3C22F8FD93F4157D4A1AB3AF753452D743FEC6A8B27401972B3F9511F sslmode=require")
+	log.SetFlag(log.Ldate | log.Ltime | log.Lshortfile)
+	flag.Parse()
+	if local {
+		// COnnect to local db for testing
+		tdb, err := sql.Open("postgres", "dbname=hearth user=hearth host=localhost password=A938CEA3C22F8FD93F4157D4A1AB3AF753452D743FEC6A8B27401972B3F9511F sslmode=disable")
+		} else {
+		// Connect to real database at amazon
+		tdb, err := sql.Open("postgres", "dbname=hearth user=hearth host=54.67.5.205 password=A938CEA3C22F8FD93F4157D4A1AB3AF753452D743FEC6A8B27401972B3F9511F sslmode=require")
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	db = tdb
 	collector.SetDb(db)
 
