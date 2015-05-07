@@ -27,7 +27,9 @@ func (w* Worker) Start() {
 			w.WorkerQueue <- w.Work
 			select {
 			case wr := <- w.Work:
-				endpoints[wr.Endpoint](wr)
+				if fn, ok := endpoints[wr.Endpoint]; ok {
+					fn(wr)
+				}
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)
 				wg.Done()
