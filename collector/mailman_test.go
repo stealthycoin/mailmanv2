@@ -11,6 +11,7 @@ import (
 
 
 func init() {
+	TestResults = make(chan string)
 	InitPersist()
 	StartRecords("2s")
 }
@@ -19,7 +20,6 @@ func init() {
 func TestBulk(t *testing.T) {
 	// Seed rng and create a channel to recieve test results on
 	rand.Seed(time.Now().Unix())
-	TestResults = make(chan string)
 
 	// Create a collector with three workers
 	InitCollector(3)
