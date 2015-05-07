@@ -93,7 +93,7 @@ func TestCancel(t *testing.T) {
 	InitCollector(1)
 	fmt.Println("Testing Cancel")
 	CollectRequest <- NewWorkRequest("ID", "testpayload", "add", "0", "message", time.Now().Unix() + 1) // Deliver in 1 seconds
-	CollectRequest <- NewWorkRequest("ID", "cancel", "add", "0", "n/a", 0) // Cancel the message coming in 1 second
+	CollectRequest <- NewWorkRequest("ID", "", "cancel", "0", "n/a", 0) // Cancel the message coming in 1 second
 	CollectRequest <- NewWorkRequest("ID2", "testpayload", "add", "0", "yay", time.Now().Unix() + 2) // Deliver in 2 seconds
 
 	// Should get yay since message was canceled
