@@ -37,6 +37,8 @@ func (w* Worker) Start() {
 			select {
 			case wr := <- w.Work:
 				if fn, ok := endpoints[wr.Endpoint]; ok {
+					wr.apns_test = w.apns_test
+					wr.apns_real = w.apns_real
 					fn(wr)
 				}
 			case <- w.Quit:
