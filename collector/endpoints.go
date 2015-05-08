@@ -110,16 +110,16 @@ func PhoneEndpoint(wr *WorkRequest) {
 	}
 
 	beep := false
-	// // Check if we should beep
-	// if (CheckRecord(wr.Token)) {
-	// 	beep = true
-	// }
+	// Check if we should beep
+	if (CheckRecord(wr.Token)) {
+		beep = true
+	}
 
-	// // Add a record
-	// file_record <- &mail_record{
-	// 	Uid: wr.Uid,
-	// 	Last_alert: time.Now().Unix(),
-	// }
+	// Add a record
+	file_record <- &mail_record{
+		Uid: wr.Uid,
+		Last_alert: time.Now().Unix(),
+	}
 
 
 	// Send apns messages
