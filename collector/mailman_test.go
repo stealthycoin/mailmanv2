@@ -131,7 +131,7 @@ func TestPushNote(t *testing.T) {
 
 	// Lame way to make a bunch of things
 	// Its this way so if I want to change it to not be a pattern
-	// later I don't have to undo a werid loop and write them all out
+	// later I don't have to undo a weird loop and write them all out
 	payloada := `{"message":"TEST: Batch 1 MSG 1"}`
 	payloadb := `{"message":"TEST: Batch 1 MSG 2"}`
 	payloadc := `{"message":"TEST: Batch 1 MSG 3"}`
