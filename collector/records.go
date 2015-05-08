@@ -55,15 +55,13 @@ func (h *MailHeap) Pop() interface{} {
 
 
 //
-// Checks to see if a record exists
+// Checks to see if a record exists and then inserts a record
 //
-func CheckRecord(id string) bool {
+func CheckAndInsertRecord(mr *mail_record) bool {
 	respond := make(chan bool)
-	check_record <- record_query{id, respond}
-	if result := <- respond; result {
-		return true
-	}
-	return false
+	check_insert <- record_query{mr, respond}
+	result := <- respond
+	return result
 }
 
 
@@ -83,7 +81,7 @@ func InitRecords(duration_fmt string) {
 
 	// Init channels
 	file_record = make(chan *mail_record, 256)
-	check_record = make(chan record_query)
+	check_insert = make(chan record_query)
 	clean := make(chan bool)
 
 	// DUration
@@ -92,35 +90,43 @@ func InitRecords(duration_fmt string) {
 		log.Fatal("Invalid record wait duration")
 	}
 
+	// ONLY HERE CALL GOOD, yes?
+	FileRecord := func(record *mail_record) {
+		// Put record into both datastructures
+		log.Println("Filing record", record)
+		heap.Push(h, record)
+		if _, ok := active_records[record.Uid]; ok {
+			active_records[record.Uid]++
+		} else {
+			active_records[record.Uid] = 1
+		}
+
+		if !counting {
+			// If we aren't counting down start doing so now
+			counting = true
+
+			go func() {
+				// Wait timelimit and then clean
+				<- time.After(dur)
+				clean <- true
+			}()
+		}
+	}
+
 	go func() {
 		for {
 			select {
 			case record := <- file_record:
-				// Put record into both datastructures
-				log.Println("Filing record", record)
-				heap.Push(h, record)
-				if _, ok := active_records[record.Uid]; ok {
-					active_records[record.Uid]++
-				} else {
-					active_records[record.Uid] = 1
-				}
+				FileRecord(record)
 
-				if !counting {
-					// If we aren't counting down start doing so now
-					counting = true
+			case rq := <- check_insert:
+				// Check if a record with the request id exists
+				// return a bool through the rq.respond channel
+				// and then add the record
+				count, ok := active_records[rq.record.Uid]
+				FileRecord(rq.record)
 
-					go func() {
-						// Wait timelimit and then clean
-						<- time.After(dur)
-						clean <- true
-					}()
-				}
-			case rq := <- check_record:
-				// Check if a record exists
-				if count, ok := active_records[rq.id]; ok && count > 0 {
-					rq.result <- true
-				}
-				rq.result <- false
+				rq.result <- ok && count > 0
 
 			case <- clean:
 				// Clean record storage
