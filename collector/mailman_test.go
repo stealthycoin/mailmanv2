@@ -105,3 +105,54 @@ func TestCancel(t *testing.T) {
 	}
 	StopCollector()
 }
+
+func TestPushNote(t *testing.T) {
+	InitCollector(1)
+	// Who to send messages to, user pk in local db
+	user_id := "3"
+	fmt.Println("Testing Push Notifications on userid:", user_id)
+
+	// Get a database connection
+	tdb, err := sql.Open("postgres", "dbname=hearth user=hearth host=localhost password=A938CEA3C22F8FD93F4157D4A1AB3AF753452D743FEC6A8B27401972B3F9511F sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	SetDb(tdb)
+
+	// Send 3 batches of 3 notifications 3 seconds apart
+	// Checking to see if the silencing mechanism works as
+	// well as the push notifications themselves
+	// records is set to release a record after 2 seconds
+	// so 3 should be enough time to unsilence the beeping
+
+	// Lame way to make a bunch of things
+	// Its this way so if I want to change it to not be a pattern
+	// later I don't have to undo a werid loop and write them all out
+	payloada := `{"message":"TEST: Batch 1 MSG 1"}`
+	payloadb := `{"message":"TEST: Batch 1 MSG 2"}`
+	payloadc := `{"message":"TEST: Batch 1 MSG 3"}`
+
+	payloadd := `{"message":"TEST: Batch 2 MSG 1"}`
+	payloade := `{"message":"TEST: Batch 2 MSG 2"}`
+	payloadf := `{"message":"TEST: Batch 2 MSG 3"}`
+
+	payloadg := `{"message":"TEST: Batch 3 MSG 1"}`
+	payloadh := `{"message":"TEST: Batch 3 MSG 2"}`
+	payloadi := `{"message":"TEST: Batch 3 MSG 3"}`
+
+	now := time.Now().Unix()
+
+	CollectRequest <- NewWorkRequest("ID1", "phone", "add", user_id, payloada, 0)
+	CollectRequest <- NewWorkRequest("ID2", "phone", "add", user_id, payloadb, 0)
+	CollectRequest <- NewWorkRequest("ID3", "phone", "add", user_id, payloadc, 0)
+
+	CollectRequest <- NewWorkRequest("ID4", "phone", "add", user_id, payloadd, now + 3)
+	CollectRequest <- NewWorkRequest("ID5", "phone", "add", user_id, payloade, now + 3)
+	CollectRequest <- NewWorkRequest("ID6", "phone", "add", user_id, payloadf, now + 3)
+
+	CollectRequest <- NewWorkRequest("ID7", "phone", "add", user_id, payloadg, now + 6)
+	CollectRequest <- NewWorkRequest("ID8", "phone", "add", user_id, payloadh, now + 6)
+	CollectRequest <- NewWorkRequest("ID9", "phone", "add", user_id, payloadi, now + 6)
+	<- time.After(10 * time.Second)
+	StopCollector()
+}
