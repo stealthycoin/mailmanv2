@@ -9,12 +9,16 @@ import (
 	"syscall"
 	"strings"
 	"strconv"
+	"github.com/anachronistic/apns"
 )
 
 // Config variables
 var (
 	configPath string = "mailman.conf"
 	Config map[string]string
+
+	// APNS client
+	apns_test, apns_real *apns.Client
 )
 
 func InitConfig() {
@@ -70,4 +74,12 @@ func LoadConfig() {
 			Config[strings.Trim(kv[0], " ")] = strings.Trim(kv[1], " ")
 		}
 	}
+
+	// Once config is loaded load the apns client
+	apns_test = apns.NewClient("gateway.sandbox.push.apple.com:2195",
+		Config["apple_push_test_cert"],
+		Config["apple_push_test_key"])
+	apns_real = apns.NewClient("gateway.push.apple.com:2195",
+		Config["apple_push_cert"],
+		Config["apple_push_key"])
 }
