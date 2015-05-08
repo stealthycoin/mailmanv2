@@ -5,13 +5,17 @@ import (
 	"math/rand"
 	"strconv"
 	"fmt"
+	"log"
 	"time"
 	"regexp"
+	_ "github.com/lib/pq"
+	"database/sql"
 )
 
 
 func init() {
 	TestResults = make(chan string)
+	InitConfig()
 	InitPersist()
 	StartRecords("2s")
 }
