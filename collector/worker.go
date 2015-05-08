@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"github.com/anachronistic/apns"
 )
 
 type Worker struct {
@@ -9,6 +10,7 @@ type Worker struct {
 	Work chan *WorkRequest
 	WorkerQueue chan chan *WorkRequest
 	Quit chan bool
+	apns_test, apns_real *apns.Client
 }
 
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
@@ -17,6 +19,13 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 		Work: make(chan *WorkRequest),
 		WorkerQueue: workerQueue,
 		Quit: make(chan bool),
+		apns_test: apns.NewClient("gateway.sandbox.push.apple.com:2195",
+			Config["apple_push_test_cert"],
+			Config["apple_push_test_key"]),
+		apns_real:apns.NewClient("gateway.push.apple.com:2195",
+			Config["apple_push_cert"],
+			Config["apple_push_key"]),
+
 	}
 }
 
