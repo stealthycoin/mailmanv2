@@ -11,13 +11,13 @@ import (
 // future messages should not beep, probably.
 var (
 	file_record chan *mail_record
-	check_record chan record_query  // Check if a record exists
+	check_insert chan record_query  // Check if a record exists
 )
 
 type MailHeap []*mail_record
 
 type record_query struct {
-	id string
+	record *mail_record
 	result chan bool
 }
 
