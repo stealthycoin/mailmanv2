@@ -30,6 +30,7 @@ func InitConfig() {
 			LoadConfig()
 			wc, _ := strconv.Atoi(Config["workers"])
 			InitCollector(wc)
+			SetRecordTimeout(Config["record_timeout"])
 		}
 	}()
 
