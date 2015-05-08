@@ -109,10 +109,10 @@ func PhoneEndpoint(wr *WorkRequest) {
 		gcm_devices = append(gcm_devices, d)
 	}
 
-	beep := false
+	beep := true
 	// Check if we should beep
 	if (CheckRecord(wr.Token)) {
-		beep = true
+		beep = false
 	}
 
 	// Add a record
