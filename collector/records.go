@@ -70,7 +70,7 @@ func CheckRecord(id string) bool {
 //
 // Go routine for recording
 //
-func StartRecords(duration_fmt string) {
+func InitRecords(duration_fmt string) {
 	log.SetFlags(log.Lshortfile)
 
 	// Heap for timing

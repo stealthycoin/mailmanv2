@@ -17,7 +17,7 @@ func init() {
 	TestResults = make(chan string)
 	InitConfig()
 	InitPersist()
-	StartRecords("2s")
+	InitRecords("2s")
 }
 
 

@@ -38,7 +38,7 @@ func main() {
 	wc, _ := strconv.Atoi(collector.Config["workers"])
 	collector.InitCollector(wc)
 	collector.InitPersist()
-	collector.StartRecord("5m")
+	collector.InitRecords("5m")
 
 	// Handler function for requests
 	http.HandleFunc("/push/", collector.RequestHandler)
