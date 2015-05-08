@@ -1,8 +1,10 @@
 package collector
 
 import (
+	"os"
 	"log"
 	"time"
+	"strconv"
 	"container/heap"
 )
 
@@ -12,6 +14,7 @@ import (
 var (
 	file_record chan *mail_record
 	check_insert chan record_query  // Check if a record exists
+	dur time.Duration
 )
 
 type MailHeap []*mail_record
@@ -64,6 +67,13 @@ func CheckAndInsertRecord(mr *mail_record) bool {
 	return result
 }
 
+func SetRecordTimeout(s string) {
+	var err error
+	dur, err = time.ParseDuration(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 //
 // Go routine for recording
@@ -84,11 +94,8 @@ func InitRecords(duration_fmt string) {
 	check_insert = make(chan record_query)
 	clean := make(chan bool)
 
-	// DUration
-	dur, err := time.ParseDuration(duration_fmt)
-	if err != nil {
-		log.Fatal("Invalid record wait duration")
-	}
+	// Duration
+	SetRecordTimeout(duration_fmt)
 
 	// ONLY HERE CALL GOOD, yes?
 	FileRecord := func(record *mail_record) {
@@ -97,6 +104,26 @@ func InitRecords(duration_fmt string) {
 		heap.Push(h, record)
 		if _, ok := active_records[record.Uid]; ok {
 			active_records[record.Uid]++
+			// Check record threshold and write a log about it
+			st, err := strconv.Atoi(Config["spam_threshold"])
+			if err != nil {
+				return
+			}
+			if active_records[record.Uid] > st {
+				go func(id string) {
+					// Write to a file that there is an issue
+					f, err := os.OpenFile(Config["record_log"], os.O_APPEND|os.O_WRONLY, 0600)
+					if err != nil {
+						log.Println(err)
+					}
+					defer f.Close()
+
+					if _,err = f.WriteString("User id : " + id + " has passed the spam threshold\n"); err != nil {
+						log.Println(err)
+					}
+
+				}(record.Uid)
+			}
 		} else {
 			active_records[record.Uid] = 1
 		}

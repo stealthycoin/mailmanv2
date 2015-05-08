@@ -40,7 +40,7 @@ func main() {
 	wc, _ := strconv.Atoi(collector.Config["workers"])
 	collector.InitCollector(wc)
 	collector.InitPersist()
-	collector.InitRecords("5m")
+	collector.InitRecords(collector.Config["record_timeout"])
 
 	// Handler function for requests
 	http.HandleFunc("/push/", collector.RequestHandler)
