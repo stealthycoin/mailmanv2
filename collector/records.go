@@ -86,6 +86,12 @@ func StartRecords(duration_fmt string) {
 	check_record = make(chan record_query)
 	clean := make(chan bool)
 
+	// DUration
+	dur, err := time.ParseDuration(duration_fmt)
+	if err != nil {
+		log.Fatal("Invalid record wait duration")
+	}
+
 	go func() {
 		for {
 			select {
