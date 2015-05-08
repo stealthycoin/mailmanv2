@@ -147,16 +147,16 @@ func TestPushNote(t *testing.T) {
 	now := time.Now().Unix()
 
 	CollectRequest <- NewWorkRequest("ID1", "phone", "add", user_id, payloada, 0)
-	CollectRequest <- NewWorkRequest("ID2", "phone", "add", user_id, payloadb, 0)
-	CollectRequest <- NewWorkRequest("ID3", "phone", "add", user_id, payloadc, 0)
+	CollectRequest <- NewWorkRequest("ID2", "phone", "add", user_id, payloadb, now + 1)
+	CollectRequest <- NewWorkRequest("ID3", "phone", "add", user_id, payloadc, now + 2)
 
 	CollectRequest <- NewWorkRequest("ID4", "phone", "add", user_id, payloadd, now + 3)
-	CollectRequest <- NewWorkRequest("ID5", "phone", "add", user_id, payloade, now + 3)
-	CollectRequest <- NewWorkRequest("ID6", "phone", "add", user_id, payloadf, now + 3)
+	CollectRequest <- NewWorkRequest("ID5", "phone", "add", user_id, payloade, now + 4)
+	CollectRequest <- NewWorkRequest("ID6", "phone", "add", user_id, payloadf, now + 5)
 
 	CollectRequest <- NewWorkRequest("ID7", "phone", "add", user_id, payloadg, now + 6)
-	CollectRequest <- NewWorkRequest("ID8", "phone", "add", user_id, payloadh, now + 6)
-	CollectRequest <- NewWorkRequest("ID9", "phone", "add", user_id, payloadi, now + 6)
+	CollectRequest <- NewWorkRequest("ID8", "phone", "add", user_id, payloadh, now + 7)
+	CollectRequest <- NewWorkRequest("ID9", "phone", "add", user_id, payloadi, now + 8)
 	<- time.After(10 * time.Second)
 	StopCollector()
 }
