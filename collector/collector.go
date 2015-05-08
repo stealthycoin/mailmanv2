@@ -42,7 +42,7 @@ func InitCollector(workerCount int) {
 	workers = make([]*Worker, 0, 0)
 
 	collectorQuit = make(chan bool)
-	CollectRequest = make(chan *WorkRequest)
+	CollectRequest = make(chan *WorkRequest, 256)
 	backup = make(chan bool)
 
 	wg.Add(workerCount)
