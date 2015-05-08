@@ -32,7 +32,7 @@ func InitConfig() {
 			<- reload
 			StopCollector()
 			LoadConfig()
-			wc, _ := strconv.Atoi(collector.Config["workers"])
+			wc, _ := strconv.Atoi(Config["workers"])
 			InitCollector(wc)
 		}
 	}()
