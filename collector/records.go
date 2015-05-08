@@ -97,7 +97,8 @@ func StartRecords(duration_fmt string) {
 			select {
 			case record := <- file_record:
 				// Put record into both datastructures
-				h.Push(record)
+				log.Println("Filing record", record)
+				heap.Push(h, record)
 				if _, ok := active_records[record.Uid]; ok {
 					active_records[record.Uid]++
 				} else {
@@ -109,18 +110,14 @@ func StartRecords(duration_fmt string) {
 					counting = true
 
 					go func() {
-						// Wait 5 minutes and then clean
-						if dur, err := time.ParseDuration(duration_fmt); err == nil {
-							<- time.After(dur)
-							clean <- true
-						} else {
-							log.Fatal(err)
-						}
+						// Wait timelimit and then clean
+						<- time.After(dur)
+						clean <- true
 					}()
 				}
 			case rq := <- check_record:
 				// Check if a record exists
-				if count, ok := active_records[rq.id]; ok && count > 0{
+				if count, ok := active_records[rq.id]; ok && count > 0 {
 					rq.result <- true
 				}
 				rq.result <- false
@@ -130,34 +127,32 @@ func StartRecords(duration_fmt string) {
 				log.Println("Cleaning")
 				// Timer went off time to clean records
 				counting = false
-				now := time.Now().Unix()
 				done := false
 
 				// Keep deleting entries until we find one that is too young
 				for !done && h.Len() > 0 {
 					// Get oldest record
-					mr := (*h)[0]
+					mr := heap.Pop(h).(*mail_record)
+					now := time.Now().Unix()
+					log.Println("\ttop record", mr, "age", time.Duration(now - mr.Last_alert) * time.Second)
 
-					// Check if it is from more than 5 minutes ago
-					if now - mr.Last_alert > 5 * 60 {
-						h.Pop() // if its older than 5 minutes pop it
+
+					// check if it is from more than duration ago
+					if time.Duration(now - mr.Last_alert) * time.Second >= dur {
+						log.Println("\tpopping record")
 						active_records[mr.Uid]--
 						if active_records[mr.Uid] <= 0 {
 							delete(active_records, mr.Uid)
 						}
 					} else {
 						// This element is too young to delete but it is the oldest one
-						// Reset timer to when this needs to be deleted
+						// reset timer to when this needs to be deleted
+						// and push it back into the heap
+						heap.Push(h, mr)
 						done = true
 						counting = true
 						go func() {
-							delay, err := time.ParseDuration(duration_fmt)
-							if err != nil {
-								log.Fatal(err)
-							}
-							delay_secs := delay.Seconds()  - float64(now - mr.Last_alert)
-
-							<- time.After(time.Duration(delay_secs) * time.Second)
+							<- time.After(dur - (time.Duration(now - mr.Last_alert) * time.Second))
 							clean <- true
 						}()
 					}
