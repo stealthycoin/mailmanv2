@@ -115,13 +115,6 @@ func PhoneEndpoint(wr *WorkRequest) {
 		beep = false
 	}
 
-	// Add a record
-	file_record <- &mail_record{
-		Uid: wr.Token,
-		Last_alert: time.Now().Unix(),
-	}
-
-
 	// Send apns messages
 	for _, device := range apns_devices {
 		ApnsEndpoint(device, wr, beep)
