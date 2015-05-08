@@ -111,7 +111,7 @@ func PhoneEndpoint(wr *WorkRequest) {
 
 	beep := true
 	// Check if we should beep
-	if (CheckRecord(wr.Token)) {
+	if (CheckAndInsertRecord(&mail_record{Uid:wr.Token, Last_alert:time.Now().Unix()})) {
 		beep = false
 	}
 
