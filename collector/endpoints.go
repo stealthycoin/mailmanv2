@@ -88,7 +88,6 @@ func PhoneEndpoint(wr *WorkRequest) {
 		apns_devices = append(apns_devices, d)
 	}
 
-	log.Println(wr.Uid, wr.Token, len(apns_devices))
 
 	// Fetch all gcm devices
 	gcm_devices := make([]Phone,0,0)
