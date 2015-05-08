@@ -111,7 +111,7 @@ func TestCancel(t *testing.T) {
 }
 
 func TestPushNote(t *testing.T) {
-	InitCollector(5)
+	InitCollector(9)
 	// Who to send messages to, user pk in local db
 	user_id := "3"
 	fmt.Println("Testing Push Notifications on userid:", user_id)
