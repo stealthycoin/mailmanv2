@@ -155,11 +155,13 @@ func ApnsEndpoint(device Phone, wr *WorkRequest, beep bool) {
 	}
 
 	// Ignoring errors like a good boi
+	start := time.Now()
 	if device.name == "testing" {
 		wr.apns_test.Send(pn)
 	} else {
 		wr.apns_real.Send(pn)
 	}
+	log.Printf("Elapsed time: %s", time.Since(start))
 
 
 	// pn.PayloadString()
