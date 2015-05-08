@@ -26,7 +26,10 @@ func InitConfig() {
 	go func() {
 		for {
 			<- reload
+			StopCollector()
 			LoadConfig()
+			wc, _ := strconv.Atoi(collector.Config["workers"])
+			InitCollector(wc)
 		}
 	}()
 
