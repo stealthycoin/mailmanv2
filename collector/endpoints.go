@@ -110,16 +110,16 @@ func PhoneEndpoint(wr *WorkRequest) {
 	}
 
 	beep := false
-	// Check if we should beep
-	if (CheckRecord(wr.Token)) {
-		beep = true
-	}
+	// // Check if we should beep
+	// if (CheckRecord(wr.Token)) {
+	// 	beep = true
+	// }
 
-	// Add a record
-	file_record <- &mail_record{
-		Uid: wr.Uid,
-		Last_alert: time.Now().Unix(),
-	}
+	// // Add a record
+	// file_record <- &mail_record{
+	// 	Uid: wr.Uid,
+	// 	Last_alert: time.Now().Unix(),
+	// }
 
 
 	// Send apns messages
@@ -134,7 +134,6 @@ func PhoneEndpoint(wr *WorkRequest) {
 }
 
 func ApnsEndpoint(device Phone, wr *WorkRequest, beep bool) {
-
 	// Unmarshal the payload
 	var dict map[string]interface{}
 	err := json.Unmarshal([]byte(wr.Payload), &dict)
@@ -151,22 +150,11 @@ func ApnsEndpoint(device Phone, wr *WorkRequest, beep bool) {
 		payload.Sound = "default"
 	}
 
+	// Configure push notification
 	pn := apns.NewPushNotification()
-	// Getting the device token is a matter of fetching a lot of stuff from the database make this one query later
-	var id int64
-	err = db.QueryRow(`select user_id from main_userprofile where id = $1`, wr.Token).Scan(&id)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	var testing string
-	err = db.QueryRow(`select registration_id, name from push_notifications_apnsdevice
-                       where user_id = $1 and active = TRUE`, id).Scan(&pn.DeviceToken, &testing)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	pn.DeviceToken = device.reg_id
 	pn.AddPayload(payload)
+
 	// Add custom keys to the pn
 	for key, val := range dict {
 		if key != "message" { // Don't copy the message twice since we are sending it in Alert
@@ -174,21 +162,13 @@ func ApnsEndpoint(device Phone, wr *WorkRequest, beep bool) {
 		}
 	}
 
-	// Create the client based on whether we are testing or not
-	var client *apns.Client
-
-	if testing == "testing" {
-		fmt.Println(Config["apple_test_push_cert"], Config["apple_test_push_cert"])
-		client = apns.NewClient("gateway.sandbox.push.apple.com:2195",
-			Config["apple_push_test_cert"],
-			Config["apple_push_test_key"])
-	} else {
-		client = apns.NewClient("gateway.push.apple.com:2195",
-			Config["apple_push_cert"],
-			Config["apple_push_key"])
-	}
 	// Ignoring errors like a good boi
-	client.Send(pn)
+	if device.name == "testing" {
+		wr.apns_test.Send(pn)
+	} else {
+		wr.apns_real.Send(pn)
+	}
+
 
 	// pn.PayloadString()
 	// fmt.Println("  Token:", wr.Token)
