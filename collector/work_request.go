@@ -26,12 +26,6 @@ func NewWorkRequest(uid, endpoint, method, token, payload string, timestamp int6
 		Token: token,
 		Timestamp: timestamp,
 		Cancel: make(chan bool),
-		apns_test: apns.NewClient("gateway.sandbox.push.apple.com:2195",
-			Config["apple_push_test_cert"],
-			Config["apple_push_test_key"]),
-		apns_real:apns.NewClient("gateway.push.apple.com:2195",
-			Config["apple_push_cert"],
-			Config["apple_push_key"]),
 	}
 }
 
