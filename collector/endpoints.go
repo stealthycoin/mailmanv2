@@ -117,7 +117,7 @@ func PhoneEndpoint(wr *WorkRequest) {
 
 	// Add a record
 	file_record <- &mail_record{
-		Uid: wr.Uid,
+		Uid: wr.Token,
 		Last_alert: time.Now().Unix(),
 	}
 
