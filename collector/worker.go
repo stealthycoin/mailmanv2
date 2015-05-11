@@ -78,6 +78,8 @@ func (w* Worker) Start() {
 				}
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)
+				w.apns_test.Disconnect()
+				w.apns_real.Disconnect()
 				wg.Done()
 				return
 			}
