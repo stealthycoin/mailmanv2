@@ -21,14 +21,14 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	if err != nil {
 		log.Fatal(err)
 	}
-	testKeyPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
+	testKeyPem, err := ioutil.ReadFile(Config["apple_push_test_key"])
 	if err != nil {
 		log.Fatal(err)
 	}
 	tc, err := apns.NewAPNSConnection(&apns.APNSConfig{
 		CertificateBytes: testCertPem,
 		KeyBytes: testKeyPem,
-		GatewayHost: "gateway.sandbox.push.apple.com:2195",
+		GatewayHost: "gateway.sandbox.push.apple.com",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -41,7 +41,7 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	if err != nil {
 		log.Fatal(err)
 	}
-	keyPem, err := ioutil.ReadFile(Config["apple_push_cert"])
+	keyPem, err := ioutil.ReadFile(Config["apple_push_key"])
 	if err != nil {
 		log.Fatal(err)
 	}

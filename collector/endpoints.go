@@ -135,32 +135,29 @@ func ApnsEndpoint(device Phone, wr *WorkRequest, beep bool) {
 		return
 	}
 
-
-	payload := apns.NewPayload()
-	payload.Alert = tmpl_splice(dict["message"].(string))
-	payload.Badge = 1
+	// Create new push notification
+	payload := &apns.Payload {
+		Token: device.reg_id,
+		AlertText: tmpl_splice(dict["message"].(string)),
+		Badge: apns.NewBadgeNumber(1),
+	}
 	if beep {
 		payload.Sound = "default"
 	}
 
-	// Configure push notification
-	pn := apns.NewPushNotification()
-	pn.DeviceToken = device.reg_id
-	pn.AddPayload(payload)
-
 	// Add custom keys to the pn
 	for key, val := range dict {
 		if key != "message" { // Don't copy the message twice since we are sending it in Alert
-			pn.Set(key, val)
+			payload.CustomFields[key] = val
 		}
 	}
 
 	// Ignoring errors like a good boi
 	start := time.Now()
 	if device.name == "testing" {
-		wr.apns_test.Send(pn)
+		wr.apns_test.SendChannel <- payload
 	} else {
-		wr.apns_real.Send(pn)
+		wr.apns_real.SendChannel <- payload
 	}
 	log.Printf("Elapsed time: %s", time.Since(start))
 
