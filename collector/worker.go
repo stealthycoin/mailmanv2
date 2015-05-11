@@ -2,7 +2,7 @@ package collector
 
 import (
 	"fmt"
-	"github.com/anachronistic/apns"
+	apns "github.com/joekarl/go-libapns"
 )
 
 type Worker struct {
@@ -10,22 +10,45 @@ type Worker struct {
 	Work chan *WorkRequest
 	WorkerQueue chan chan *WorkRequest
 	Quit chan bool
-	apns_test, apns_real *apns.Client
+	apns_test, apns_real *apns.APNSConnection
 }
 
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
+	// load test cert/key
+	testCertPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
+	if err != nil {
+		panic(err)
+	}
+	testKeyPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
+	if err != nil {
+		panic(err)
+	}
+
+	// load cert/key
+	certPem, err := ioutil.ReadFile(Config["apple_push_cert"])
+	if err != nil {
+		panic(err)
+	}
+	keyPem, err := ioutil.ReadFile(Config["apple_push_cert"])
+	if err != nil {
+		panic(err)
+	}
+
+	// Config worker
 	return &Worker{
 		Id: id,
 		Work: make(chan *WorkRequest),
 		WorkerQueue: workerQueue,
 		Quit: make(chan bool),
-		apns_test: apns.NewClient("gateway.sandbox.push.apple.com:2195",
-			Config["apple_push_test_cert"],
-			Config["apple_push_test_key"]),
-		apns_real:apns.NewClient("gateway.push.apple.com:2195",
-			Config["apple_push_cert"],
-			Config["apple_push_key"]),
-
+		apns_test: apns.NewAPNSConnection(&APNSConfig{
+			CertificateBytes: testCertPem,
+			KeyBytes: testKeyPem,
+			GatewayHost: "gateway.sandbox.push.apple.com:2195",
+		}),
+		apns_real:apns.NewAPNSConnection(&APNSConfig{
+			CertificateBytes: certPem,
+			KeyBytes: keyPem,
+		}),
 	}
 }
 
