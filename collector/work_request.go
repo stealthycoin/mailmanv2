@@ -2,7 +2,7 @@ package collector
 
 import (
 	"time"
-	"github.com/anachronistic/apns"
+	apns "github.com/joekarl/go-libapns"
 )
 
 type WorkRequest struct {
@@ -13,7 +13,7 @@ type WorkRequest struct {
 	Token string     `json:"token"`
 	Timestamp int64  `json:"timestamp"`
 	Cancel chan bool
-	apns_test, apns_real *apns.Client
+	apns_test, apns_real *apns.APNSConnection
 }
 
 

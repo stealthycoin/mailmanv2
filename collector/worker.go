@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"log"
 	"io/ioutil"
 	apns "github.com/joekarl/go-libapns"
 )
@@ -18,21 +19,38 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	// load test cert/key
 	testCertPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	testKeyPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+	tc, err := apns.NewAPNSConnection(&apns.APNSConfig{
+		CertificateBytes: testCertPem,
+		KeyBytes: testKeyPem,
+		GatewayHost: "gateway.sandbox.push.apple.com:2195",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+
 
 	// load cert/key
 	certPem, err := ioutil.ReadFile(Config["apple_push_cert"])
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	keyPem, err := ioutil.ReadFile(Config["apple_push_cert"])
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+	}
+	rc, err := apns.NewAPNSConnection(&apns.APNSConfig{
+		CertificateBytes: certPem,
+		KeyBytes: keyPem,
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Config worker
@@ -41,15 +59,8 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 		Work: make(chan *WorkRequest),
 		WorkerQueue: workerQueue,
 		Quit: make(chan bool),
-		apns_test: apns.NewAPNSConnection(&APNSConfig{
-			CertificateBytes: testCertPem,
-			KeyBytes: testKeyPem,
-			GatewayHost: "gateway.sandbox.push.apple.com:2195",
-		}),
-		apns_real:apns.NewAPNSConnection(&APNSConfig{
-			CertificateBytes: certPem,
-			KeyBytes: keyPem,
-		}),
+		apns_test: tc,
+		apns_real: rc,
 	}
 }
 
