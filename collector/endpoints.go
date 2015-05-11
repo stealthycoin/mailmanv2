@@ -140,6 +140,7 @@ func ApnsEndpoint(device Phone, wr *WorkRequest, beep bool) {
 		Token: device.reg_id,
 		AlertText: tmpl_splice(dict["message"].(string)),
 		Badge: apns.NewBadgeNumber(1),
+		CustomFields: make(map[string]interface{}),
 	}
 	if beep {
 		payload.Sound = "default"
