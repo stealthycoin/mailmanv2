@@ -2,7 +2,7 @@ package collector
 
 import (
 	"fmt"
-	"ioutil"
+	"io/ioutil"
 	apns "github.com/joekarl/go-libapns"
 )
 
