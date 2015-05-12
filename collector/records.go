@@ -157,7 +157,6 @@ func InitRecords(duration_fmt string) {
 
 			case <- clean:
 				// Clean record storage
-				log.Println("Cleaning")
 				// Timer went off time to clean records
 				counting = false
 				done := false
@@ -167,12 +166,10 @@ func InitRecords(duration_fmt string) {
 					// Get oldest record
 					mr := heap.Pop(h).(*mail_record)
 					now := time.Now().Unix()
-					log.Println("\ttop record", mr, "age", time.Duration(now - mr.Last_alert) * time.Second)
 
 
 					// check if it is from more than duration ago
 					if time.Duration(now - mr.Last_alert) * time.Second >= dur {
-						log.Println("\tpopping record")
 						active_records[mr.Uid]--
 						if active_records[mr.Uid] <= 0 {
 							delete(active_records, mr.Uid)
