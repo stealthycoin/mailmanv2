@@ -16,6 +16,20 @@ type Worker struct {
 }
 
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
+	// Config worker
+	w := &Worker{
+		Id: id,
+		Work: make(chan *WorkRequest),
+		WorkerQueue: workerQueue,
+		Quit: make(chan bool),
+	}
+
+	w.OpenAPNS()
+
+	return w
+}
+
+func (w *Worker) OpenAPNS() {
 	// load test cert/key
 	testCertPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
 	if err != nil {
@@ -53,19 +67,11 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 		log.Fatal(err)
 	}
 
-	// Config worker
-	return &Worker{
-		Id: id,
-		Work: make(chan *WorkRequest),
-		WorkerQueue: workerQueue,
-		Quit: make(chan bool),
-		apns_test: tc,
-		apns_real: rc,
-	}
+	w.apns_test = tc
+	w.apns_real = rc
 }
 
-
-func (w* Worker) Start() {
+func (w *Worker) Start() {
 	go func() {
 		for {
 			w.WorkerQueue <- w.Work
