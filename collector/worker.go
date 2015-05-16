@@ -30,6 +30,7 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 }
 
 func (w *Worker) OpenAPNS() {
+	log.Printf("Opening APNS connection for worker %d\n", w.Id)
 	// load test cert/key
 	testCertPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
 	if err != nil {
