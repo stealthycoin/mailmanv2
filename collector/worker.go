@@ -75,7 +75,7 @@ func (w *Worker) OpenAPNS() {
 }
 
 func (w *Worker) ErrorListen() {
-	cc := <- tc.CloseChannel
+	cc := <- w.tc.CloseChannel
 	log.Println(cc)
 	w.OpenAPNS()
 }
