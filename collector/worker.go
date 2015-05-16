@@ -70,10 +70,13 @@ func (w *Worker) OpenAPNS() {
 	w.apns_test = tc
 	w.apns_real = rc
 
-	go func () {
-		cc := <- tc.CloseChannel
-		log.Println(cc)
-	}()
+	go w.ErrorListen()
+}
+
+func (w *Worker) ErrorListen() {
+	cc := <- tc.CloseChannel
+	log.Println(cc)
+	w.OpenAPNS()
 }
 
 func (w *Worker) Start() {
