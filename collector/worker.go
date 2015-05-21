@@ -7,6 +7,10 @@ import (
 	apns "github.com/joekarl/go-libapns"
 )
 
+
+//
+// Worker structure
+//
 type Worker struct {
 	Id int
 	Work chan *WorkRequest
@@ -15,6 +19,10 @@ type Worker struct {
 	apns_test, apns_real *apns.APNSConnection
 }
 
+
+//
+//
+//
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	// Config worker
 	w := &Worker{
@@ -29,6 +37,10 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	return w
 }
 
+
+//
+// Load apns settings
+//
 func (w *Worker) OpenAPNS() {
 	log.Printf("Opening APNS connection for worker %d\n", w.Id)
 	// load test cert/key
@@ -74,12 +86,20 @@ func (w *Worker) OpenAPNS() {
 	go w.ErrorListen()
 }
 
+
+//
+// Listen for apns errors and reload it
+//
 func (w *Worker) ErrorListen() {
 	cc := <- w.apns_real.CloseChannel
 	log.Println(cc)
 	w.OpenAPNS()
 }
 
+
+//
+// Start worker routine
+//
 func (w *Worker) Start() {
 	go func() {
 		for {
