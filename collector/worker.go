@@ -109,6 +109,7 @@ func (w *Worker) Start() {
 				if fn, ok := endpoints[wr.Endpoint]; ok {
 					wr.apns_test = w.apns_test
 					wr.apns_real = w.apns_real
+					log.Println("worker fn calling", wr)
 					fn(wr)
 				}
 			case <- w.Quit:

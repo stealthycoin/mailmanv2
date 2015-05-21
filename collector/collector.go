@@ -82,12 +82,14 @@ func InitCollector(workerCount int) {
 						oldwr.Cancel <- true
 					}
 					requests[wr.Uid] = wr
+					log.Println("Add", wr)
 					go wr.StartTimer()
 				} else if wr.Method == "cancel" {
 					// Remove a work request with a given uid if it exists
 					if oldwr, ok := requests[wr.Uid]; ok {
 						oldwr.Cancel <- true
 						delete(requests, wr.Uid)
+						log.Println("cancel", oldwr)
 					}
 				} else if wr.Method == "update" {
 					// Splice payloads together using templates man.
@@ -102,6 +104,7 @@ func InitCollector(workerCount int) {
 						oldwr.Cancel <- true
 					}
 					requests[wr.Uid] = wr
+					log.Println("Update", wr)
 					go wr.StartTimer()
 				}
 			case <- backup:
