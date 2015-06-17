@@ -21,7 +21,7 @@ type Worker struct {
 
 
 //
-//
+// Create a new worker
 //
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	// Config worker
@@ -107,10 +107,7 @@ func (w *Worker) Start() {
 			select {
 			case wr := <- w.Work:
 				if fn, ok := endpoints[wr.Endpoint]; ok {
-					wr.apns_test = w.apns_test
-					wr.apns_real = w.apns_real
-					log.Println("worker fn calling", wr)
-					fn(wr)
+					fn(wr, w)
 				}
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)

@@ -26,20 +26,12 @@ var (
 // Create and launch a collector
 func InitCollector(workerCount int) {
 	endpoints = make(map[string]endpoint)
-	// Test endpoints
-	endpoints["testtime"] = TestTimePayload
-	endpoints["testpayload"] = TestPayload
-	endpoints["println"] = PrintlnEndpoint
-
-	// Real endpoints
-	endpoints["website"] = WebsiteEndpoint
-	endpoints["phone"] = PhoneEndpoint
 
 	// Global values
-	requests = make(map[string]*WorkRequest)
+	requests    = make(map[string]*WorkRequest)
 	workerQueue = make(chan chan *WorkRequest, workerCount)
-	workQueue = make(chan *WorkRequest, 100)
-	workers = make([]*Worker, 0, 0)
+	workQueue   = make(chan *WorkRequest, 100)
+	workers     = make([]*Worker, 0, 0)
 
 	collectorQuit = make(chan bool)
 	CollectRequest = make(chan *WorkRequest, 256)
@@ -91,21 +83,6 @@ func InitCollector(workerCount int) {
 						delete(requests, wr.Uid)
 						log.Println("cancel", oldwr)
 					}
-				} else if wr.Method == "update" {
-					// Splice payloads together using templates man.
-					// if no previous work_request exists this is just an add
-					if oldwr, ok := requests[wr.Uid]; ok {
-						new_payload, err := tmpl_merge(oldwr.Payload, wr.Payload)
-						if err != nil {
-							log.Println(err)
-						} else {
-							wr.Payload = new_payload
-						}
-						oldwr.Cancel <- true
-					}
-					requests[wr.Uid] = wr
-					log.Println("Update", wr)
-					go wr.StartTimer()
 				}
 			case <- backup:
 				// do some backup stuff

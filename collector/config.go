@@ -30,7 +30,6 @@ func InitConfig() {
 			LoadConfig()
 			wc, _ := strconv.Atoi(Config["workers"])
 			InitCollector(wc)
-			SetRecordTimeout(Config["record_timeout"])
 		}
 	}()
 
@@ -53,6 +52,8 @@ func LoadConfig() {
 	log.Println("Loading Config.")
 	// Defaults set here and will be overrided by the Config file
 	Config["backup_path"] = "backup.gob"
+	Config["backup_delay"] = "600"
+	Config["workers"] = "3"
 
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
