@@ -23,12 +23,21 @@ func InitPersist() {
 		}
 	}()
 
-	// Handle the INT/TERM signal which should also back up memory
-	sigs := make (chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	// Handle the INT signal which should also back up memory
+	int := make (chan os.Signal, 1)
+	signal.Notify(int, syscall.SIGINT)
 	go func() {
-		<- sigs
+		<- int
+		StopCollector()
 		BackupRequests()
+		os.Exit(1)
+	}()
+
+	// Handle the TERM signal
+	term := make(chan os.Signal, 1)
+	singal.Notify(term, syscall.SIGTERM)
+	go func() {
+		<- term
 		os.Exit(1)
 	}()
 
