@@ -35,7 +35,7 @@ func InitPersist() {
 
 	// Handle the TERM signal
 	term := make(chan os.Signal, 1)
-	singal.Notify(term, syscall.SIGTERM)
+	signal.Notify(term, syscall.SIGTERM)
 	go func() {
 		<- term
 		os.Exit(1)
