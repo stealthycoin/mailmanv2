@@ -23,7 +23,16 @@ var (
 )
 
 
-// Create and launch a collector
+//
+// Add an endpoint function
+//
+func AddEndpoint(name string, f endpoint) {
+	endpoints[string] = f
+}
+
+//
+//Create and launch a collector
+//
 func InitCollector(workerCount int) {
 	endpoints = make(map[string]endpoint)
 
