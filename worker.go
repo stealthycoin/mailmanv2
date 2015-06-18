@@ -1,4 +1,4 @@
-package collector
+package mailmanv2
 
 import (
 	"fmt"
@@ -60,51 +60,56 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 //
 func (w *Worker) OpenAPNS() {
 	log.Printf("Opening APNS connection for worker %d\n", w.Id)
-	// load test cert/key
-	testCertPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
-	if err != nil {
-		log.Fatal(err)
-	}
-	testKeyPem, err := ioutil.ReadFile(Config["apple_push_test_key"])
-	if err != nil {
-		log.Fatal(err)
-	}
-	tc, err := apns.NewAPNSConnection(&apns.APNSConfig{
-		CertificateBytes: testCertPem,
-		KeyBytes: testKeyPem,
-		GatewayHost: "gateway.sandbox.push.apple.com",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	if _, ok := Config["apple_push_test_cert"]; ok {
+		// load test cert/key
+		testCertPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
+		if err != nil {
+			log.Fatal(err)
+		}
+		testKeyPem, err := ioutil.ReadFile(Config["apple_push_test_key"])
+		if err != nil {
+			log.Fatal(err)
+		}
+		tc, err := apns.NewAPNSConnection(&apns.APNSConfig{
+			CertificateBytes: testCertPem,
+			KeyBytes: testKeyPem,
+			GatewayHost: "gateway.sandbox.push.apple.com",
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 
-
-
-	// load cert/key
-	certPem, err := ioutil.ReadFile(Config["apple_push_cert"])
-	if err != nil {
-		log.Fatal(err)
-	}
-	keyPem, err := ioutil.ReadFile(Config["apple_push_key"])
-	if err != nil {
-		log.Fatal(err)
-	}
-	rc, err := apns.NewAPNSConnection(&apns.APNSConfig{
-		CertificateBytes: certPem,
-		KeyBytes: keyPem,
-	})
-	if err != nil {
-		log.Fatal(err)
+		w.apns_test = tc
 	}
 
-	w.apns_test = tc
-	w.apns_real = rc
 
-	// Create buffer
-	w.buffer = make([]*apns.Payload, 0)
-	w.buffer_offset = 1
+	if _, ok := Config["apple_push_cert"]; ok {
+		// load cert/key
+		certPem, err := ioutil.ReadFile(Config["apple_push_cert"])
+		if err != nil {
+			log.Fatal(err)
+		}
+		keyPem, err := ioutil.ReadFile(Config["apple_push_key"])
+		if err != nil {
+			log.Fatal(err)
+		}
+		rc, err := apns.NewAPNSConnection(&apns.APNSConfig{
+			CertificateBytes: certPem,
+			KeyBytes: keyPem,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	go w.ErrorListen()
+		w.apns_real = rc
+
+		// Create buffer
+		w.buffer = make([]*apns.Payload, 0)
+		w.buffer_offset = 1
+
+		go w.ErrorListen()
+	}
+
 }
 
 
@@ -166,9 +171,14 @@ func (w *Worker) Start() {
 				}
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)
-				w.apns_test.Disconnect()
-				w.apns_real.Disconnect()
 				wg.Done()
+				if w.apns_test != nil {
+					w.apns_test.Disconnect()
+				}
+				if w.apns_real != nil {
+					w.apns_real.Disconnect()
+				}
+
 				return
 			}
 		}

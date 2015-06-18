@@ -1,4 +1,4 @@
-package collector
+package mailmanv2
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ var (
 // Add an endpoint function
 //
 func AddEndpoint(name string, f endpoint) {
-	endpoints[string] = f
+	endpoints[name] = f
 }
 
 //
@@ -83,14 +83,12 @@ func InitCollector(workerCount int) {
 						oldwr.Cancel <- true
 					}
 					requests[wr.Uid] = wr
-					log.Println("Add", wr)
 					go wr.StartTimer()
 				} else if wr.Method == "cancel" {
 					// Remove a work request with a given uid if it exists
 					if oldwr, ok := requests[wr.Uid]; ok {
 						oldwr.Cancel <- true
 						delete(requests, wr.Uid)
-						log.Println("cancel", oldwr)
 					}
 				}
 			case <- backup:

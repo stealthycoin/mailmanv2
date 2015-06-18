@@ -1,4 +1,4 @@
-package collector
+package mailmanv2
 
 import (
 	"time"
