@@ -17,6 +17,9 @@ type Worker struct {
 	WorkerQueue chan chan *WorkRequest
 	Quit chan bool
 	apns_test, apns_real *apns.APNSConnection
+	Error bool
+	buffer []*apns.Payload
+	buffer_offset uint32
 }
 
 
@@ -30,6 +33,7 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 		Work: make(chan *WorkRequest),
 		WorkerQueue: workerQueue,
 		Quit: make(chan bool),
+		Error: false,
 	}
 
 	w.OpenAPNS()
@@ -92,12 +96,44 @@ func (w *Worker) OpenAPNS() {
 
 
 //
+// Bad token, needs to be punished
+//
+func (w *Worker) BadToken(payload *apns.Payload) {
+
+}
+
+
+//
 // Listen for apns errors and reload it
 //
 func (w *Worker) ErrorListen() {
 	cc := <- w.apns_real.CloseChannel
-	log.Println(cc)
-	w.OpenAPNS()
+
+	// Which error is it
+	switch cc.Error.ErrorCode {
+	case 251:
+		log.Println("EOF")
+	case 1:
+		log.Println("PROCESSING_ERROR")
+	case 2:
+		log.Println("MISSING_DEVICE_TOKEN")
+	case 3:
+		log.Println("MISSING_TOPIC")
+	case 4:
+		log.Println("MISSING_PAYLOAD")
+	case 5:
+		log.Println("INVALID_TOKEN_SIZE")
+		w.BadToken(w.buffer[cc.Error.MessageID - w.buffer_offset])
+	case 6:
+		log.Println("INVALID_TOPIC_SIZE")
+	case 7:
+		log.Println("INVALID_PAYLOAD_SIZE")
+	case 8:
+		log.Println("INVALID_TOKEN")
+		w.BadToken(w.buffer[cc.Error.MessageID - w.buffer_offset])
+	}
+
+	w.Error = true
 }
 
 
