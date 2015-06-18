@@ -83,6 +83,10 @@ func (w *Worker) OpenAPNS() {
 	w.apns_test = tc
 	w.apns_real = rc
 
+	// Create buffer
+	w.buffer = make([]*apns.Payload, 0)
+	w.buffer_offset = 1
+
 	go w.ErrorListen()
 }
 
