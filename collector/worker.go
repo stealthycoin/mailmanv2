@@ -7,6 +7,11 @@ import (
 	apns "github.com/joekarl/go-libapns"
 )
 
+type errorhandler func(*apns.Payload)
+
+var (
+	error_handlers = make(map[string]errorhandler)
+)
 
 //
 // Worker structure
@@ -20,6 +25,14 @@ type Worker struct {
 	Error bool
 	buffer []*apns.Payload
 	buffer_offset uint32
+}
+
+
+//
+// Add an error handling function
+//
+func add_worker(name string, f errorhandler) {
+	error_handlers[name] = f
 }
 
 
@@ -99,7 +112,7 @@ func (w *Worker) OpenAPNS() {
 // Bad token, needs to be punished
 //
 func (w *Worker) BadToken(payload *apns.Payload) {
-
+	error_handlers["bad_token"](payload)
 }
 
 
