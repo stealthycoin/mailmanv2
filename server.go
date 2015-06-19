@@ -5,13 +5,22 @@ import (
 	"net/http"
 )
 
-func StartServer() {
-	// Init all the components
+
+//
+// Init all mailman modules
+//
+func Init() {
 	InitConfig()
 	wc, _ := strconv.Atoi(Config["workers"])
 	InitCollector(wc)
 	InitPersist()
+}
 
+
+//
+// Registers routes and launches the server
+//
+func StartServer() {
 	// Handler function for requests
 	http.HandleFunc("/push/", RequestHandler)
 
