@@ -7,8 +7,6 @@ import (
 	apns "github.com/joekarl/go-libapns"
 )
 
-type errorhandler func(*apns.Payload)
-
 var (
 	error_handlers = make(map[string]errorhandler)
 )

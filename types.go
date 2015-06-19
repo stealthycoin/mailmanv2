@@ -1,4 +1,11 @@
 package mailmanv2
 
+import (
+	apns "github.com/joekarl/go-libapns"
+)
+
 // An endpoint function
-type endpoint func(wr *WorkRequest, w *Worker)
+type endpoint func(*WorkRequest, *Worker)
+
+// An error handling type for apns messages
+type errorhandler func(*apns.Payload)
