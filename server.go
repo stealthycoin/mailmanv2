@@ -1,16 +1,11 @@
 package mailmanv2
 
 import (
-	"log"
-	"flag"
 	"strconv"
 	"net/http"
 )
 
 func StartServer() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	flag.Parse()
-
 	// Init all the components
 	InitConfig()
 	wc, _ := strconv.Atoi(Config["workers"])

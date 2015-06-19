@@ -31,7 +31,7 @@ type Worker struct {
 //
 // Add an error handling function
 //
-func add_worker(name string, f errorhandler) {
+func AddErrorHandler(name string, f errorhandler) {
 	error_handlers[name] = f
 }
 
@@ -117,7 +117,9 @@ func (w *Worker) OpenAPNS() {
 // Bad token, needs to be punished
 //
 func (w *Worker) BadToken(payload *apns.Payload) {
-	error_handlers["bad_token"](payload)
+	if eh, ok := error_handlers["bad_token"]; ok {
+		eh(payload)
+	}
 }
 
 
@@ -154,6 +156,34 @@ func (w *Worker) ErrorListen() {
 	w.Error = true
 }
 
+
+//
+// Add to buffer of messagse
+//
+func (w *Worker) BufferPayload(payload *apns.Payload) {
+	w.buffer = append(w.buffer, payload)
+	if len(w.buffer) > 100 {
+		w.buffer = w.buffer[1:]
+		w.buffer_offset++
+	}
+}
+
+
+//
+// Send over the channel opening if required
+//
+func (w *Worker) Send(payload *apns.Payload, testing bool) {
+	if w.Error {
+		w.Error = false
+		w.OpenAPNS()
+	}
+	if testing {
+		w.apns_test.SendChannel <- payload
+	}else {
+		w.apns_real.SendChannel <- payload
+		w.BufferPayload(payload)
+	}
+}
 
 //
 // Start worker routine
