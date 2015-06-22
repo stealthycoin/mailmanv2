@@ -157,6 +157,7 @@ func (w *Worker) ErrorListen() {
 		hanlde("INVALID_TOKEN")
 	}
 
+	// Set error flag to true to restart connection
 	w.Error = true
 }
 
