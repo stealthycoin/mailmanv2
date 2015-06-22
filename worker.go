@@ -119,7 +119,7 @@ func (w *Worker) ErrorListen() {
 
 	// Handle an error
 	handle := func(code string) {
-		if eh, ok error_handlers[code]; ok {
+		if eh, ok := error_handlers[code]; ok {
 			eh(w.buffer[cc.Error.MessageID - w.buffer_offset])
 		} else {
 			log.Println("No handler for", code)
