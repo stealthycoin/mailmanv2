@@ -154,7 +154,7 @@ func (w *Worker) ErrorListen() {
 		handle("INVALID_PAYLOAD_SIZE")
 	case 8:
 		log.Println("INVALID_TOKEN")
-		hanlde("INVALID_TOKEN")
+		handle("INVALID_TOKEN")
 	}
 
 	// Set error flag to true to restart connection
