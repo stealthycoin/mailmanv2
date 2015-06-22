@@ -115,7 +115,10 @@ func (w *Worker) OpenAPNS() {
 // Listen for apns errors and reload it
 //
 func (w *Worker) ErrorListen() {
-	cc := <- w.apns_real.CloseChannel
+	cc, ok := <- w.apns_real.CloseChannel
+	if !ok {
+		return
+	}
 
 	// Handle an error
 	handle := func(code string) {
