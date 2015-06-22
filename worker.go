@@ -112,43 +112,49 @@ func (w *Worker) OpenAPNS() {
 
 
 //
-// Bad token, needs to be punished
-//
-func (w *Worker) BadToken(payload *apns.Payload) {
-	if eh, ok := error_handlers["bad_token"]; ok {
-		eh(payload)
-	}
-}
-
-
-//
 // Listen for apns errors and reload it
 //
 func (w *Worker) ErrorListen() {
 	cc := <- w.apns_real.CloseChannel
 
+	// Handle an error
+	handle := func(code string) {
+		if eh, ok error_handlers[code]; ok {
+			eh(w.buffer[cc.Error.MessageID - w.buffer_offset])
+		} else {
+			log.Println("No handler for", code)
+		}
+	}
+
 	// Which error is it
 	switch cc.Error.ErrorCode {
 	case 251:
 		log.Println("EOF")
+		handle("EOF")
 	case 1:
 		log.Println("PROCESSING_ERROR")
+		handle("PROCESSING_ERROR")
 	case 2:
 		log.Println("MISSING_DEVICE_TOKEN")
+		handle("MISSING_DEVICE_TOKEN")
 	case 3:
 		log.Println("MISSING_TOPIC")
+		handle("MISSING_TOPIC")
 	case 4:
 		log.Println("MISSING_PAYLOAD")
+		handle("MISSING_PAYLOAD")
 	case 5:
 		log.Println("INVALID_TOKEN_SIZE")
-		w.BadToken(w.buffer[cc.Error.MessageID - w.buffer_offset])
+		handle("INVALID_TOKEN_SIZE")
 	case 6:
 		log.Println("INVALID_TOPIC_SIZE")
+		handle("INVALID_TOKEN_SIZE")
 	case 7:
 		log.Println("INVALID_PAYLOAD_SIZE")
+		handle("INVALID_PAYLOAD_SIZE")
 	case 8:
 		log.Println("INVALID_TOKEN")
-		w.BadToken(w.buffer[cc.Error.MessageID - w.buffer_offset])
+		hanlde("INVALID_TOKEN")
 	}
 
 	w.Error = true
