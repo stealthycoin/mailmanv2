@@ -116,7 +116,7 @@ func (w *Worker) OpenAPNS() {
 //
 func (w *Worker) ErrorListen() {
 	cc, ok := <- w.apns_real.CloseChannel
-	if !ok {
+	if !ok || cc == nil {
 		return
 	}
 
