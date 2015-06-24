@@ -9,3 +9,6 @@ type endpoint func(*WorkRequest, *Worker)
 
 // An error handling type for apns messages
 type errorhandler func(*apns.Payload)
+
+// A custom method function
+type pushmethod func(*WorkRequest, *WorkRequest) *WorkRequest

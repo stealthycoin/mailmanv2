@@ -90,6 +90,18 @@ func InitCollector(workerCount int) {
 						oldwr.Cancel <- true
 						delete(requests, wr.Uid)
 					}
+				} else {
+					if fn, ok := methods[wr.Method]; ok {
+						old, ok := requests[wr.Uid]
+						wr = fn(old, wr)
+						if ok {
+							old.Cancel <- true
+						}
+						requests[wr.Uid] = wr
+						go wr.StartTimer()
+					} else {
+						log.Println("No such method:", wr.Method)
+					}
 				}
 			case <- backup:
 				// do some backup stuff
