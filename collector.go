@@ -12,6 +12,7 @@ import (
 // Package Variables
 var (
 	endpoints map[string]endpoint
+	methods map[string]pushmethod
 	requests map[string]*WorkRequest
 	workerQueue chan chan *WorkRequest
 	workQueue chan *WorkRequest
@@ -29,6 +30,15 @@ var (
 func AddEndpoint(name string, f endpoint) {
 	endpoints[name] = f
 }
+
+
+//
+// Add a method type
+//
+func AddMethod(name string, f pushmethod) {
+	methods[name] = f
+}
+
 
 //
 //Create and launch a collector
