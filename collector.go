@@ -117,7 +117,6 @@ func InitCollector(workerCount int) {
 				}
 			case <- backup:
 				// do some backup stuff
-				fmt.Println("backup")
 				BackupRequests()
 			}
 		}
