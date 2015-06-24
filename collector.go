@@ -44,7 +44,9 @@ func AddMethod(name string, f pushmethod) {
 //Create and launch a collector
 //
 func InitCollector(workerCount int) {
+	// Init fn maps
 	endpoints = make(map[string]endpoint)
+	methods = make(map[string]pushmethod)
 
 	// Global values
 	requests    = make(map[string]*WorkRequest)
