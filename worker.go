@@ -203,11 +203,21 @@ func (w *Worker) Start() {
 			w.WorkerQueue <- w.Work
 			select {
 			case wr := <- w.Work:
-				if fn, ok := endpoints[wr.Endpoint]; ok {
-					fn(wr, w)
-				} else {
-					log.Println("No such endpoint", wr.Endpoint)
-				}
+				func () {
+					// Recover from any error that occurs during work, must requeue the worker
+					defer func() {
+						if r := recover(); r != nil {
+							log.Println("Worker", w.Id, "recovered", r)
+						}
+					}()
+
+					// Check for endpoint and call function
+					if fn, ok := endpoints[wr.Endpoint]; ok {
+						fn(wr, w)
+					} else {
+						log.Println("No such endpoint", wr.Endpoint)
+					}
+				}()
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)
 				wg.Done()
