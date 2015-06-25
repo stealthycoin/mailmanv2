@@ -199,6 +199,7 @@ func (w *Worker) Send(payload *apns.Payload, testing bool) {
 func (w *Worker) Start() {
 	go func() {
 		for {
+			log.Println("Queueing worker", w.Id)
 			w.WorkerQueue <- w.Work
 			select {
 			case wr := <- w.Work:
