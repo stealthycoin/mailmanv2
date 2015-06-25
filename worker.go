@@ -213,6 +213,7 @@ func (w *Worker) Start() {
 
 					// Check for endpoint and call function
 					if fn, ok := endpoints[wr.Endpoint]; ok {
+						log.Println("Worker", w.Id, "Starting work")
 						fn(wr, w)
 					} else {
 						log.Println("No such endpoint", wr.Endpoint)
