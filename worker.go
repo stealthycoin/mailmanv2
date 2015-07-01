@@ -128,7 +128,7 @@ func (w *Worker) ErrorListen() {
 	handle := func(code string) {
 		if eh, ok := error_handlers[code]; ok {
 			log.Println("Handling", code)
-			if idx := cc.Error.MessageID - w.buffer_offset; idx >= 0 && idx < len(w.buffer) {
+			if idx := cc.Error.MessageID - w.buffer_offset; idx >= 0 && idx < uint32(len(w.buffer)) {
 				eh(w.buffer[idx])
 			} else {
 				log.Println("MessageID out of bounds", idx, len(w.buffer))
