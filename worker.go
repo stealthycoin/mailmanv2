@@ -115,6 +115,10 @@ func (w *Worker) OpenAPNS() {
 // Listen for apns errors and reload it
 //
 func (w *Worker) ErrorListen() {
+	defer func() {
+		w.Error = true
+	}()
+
 	cc, ok := <- w.apns_real.CloseChannel
 	if !ok || cc == nil {
 		return
@@ -123,7 +127,12 @@ func (w *Worker) ErrorListen() {
 	// Handle an error
 	handle := func(code string) {
 		if eh, ok := error_handlers[code]; ok {
-			eh(w.buffer[cc.Error.MessageID - w.buffer_offset])
+			log.Println("Handling", code)
+			if idx := cc.Error.MessageID - w.buffer_offset; idx >= 0 && idx < len(w.buffer) {
+				eh(w.buffer[idx])
+			} else {
+				log.Println("MessageID out of bounds", idx, len(w.buffer))
+			}
 		} else {
 			log.Println("No handler for", code)
 		}
@@ -159,11 +168,7 @@ func (w *Worker) ErrorListen() {
 		log.Println("INVALID_TOKEN")
 		handle("INVALID_TOKEN")
 	}
-
-	// Set error flag to true to restart connection
-	w.Error = true
 }
-
 
 //
 // Add to buffer of messagse
