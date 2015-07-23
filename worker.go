@@ -69,13 +69,16 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 // Map a pair of config values to apns key/cert pair
 /// TODO explicar
 //
-func (w *Worker) NewApns(key string) {
-	// Set a blank connection and set its error to true
-	w.Apns_cons[key] = nil
-	w.payload_buffer[key] = &PayloadBuffer{
-		buffer:        make([]*apns.Payload, 0),
-		buffer_offset: 1,
-		error:         true,
+func NewApns(key string) {
+	// For all workers currently running
+	for _, w := range workers {
+		// Set a blank connection and set its error to true
+		w.Apns_cons[key] = nil
+		w.payload_buffer[key] = &PayloadBuffer{
+			buffer:        make([]*apns.Payload, 0),
+			buffer_offset: 1,
+			error:         true,
+		}
 	}
 }
 
