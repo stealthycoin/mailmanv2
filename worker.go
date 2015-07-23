@@ -7,24 +7,37 @@ import (
 	apns "github.com/joekarl/go-libapns"
 )
 
+const (
+	MAX_BUFFERED_MESSAGES = 100
+)
+
 var (
 	error_handlers = make(map[string]errorhandler)
 )
+
+
+//
+// Buffer to hold sent payloads for error handling
+//
+type PayloadBuffer struct {
+	buffer        []*apns.Payload
+	buffer_offset uint32
+	error         bool
+}
+
 
 //
 // Worker structure
 //
 type Worker struct {
-	Id            int
-	Work          chan *WorkRequest
-	WorkerQueue   chan chan *WorkRequest
-	Quit          chan bool
-	apns_cons     map[string]*apns.APNSConnection
-	Error         bool
-	buffer        []*apns.Payload
-	buffer_offset uint32
+	Id             int
+	Work           chan *WorkRequest
+	WorkerQueue    chan chan *WorkRequest
+	Quit           chan bool
+	// Parallel maps, not good (TODO)
+	Apns_cons      map[string]*apns.APNSConnection
+	payload_buffer map[string]*PayloadBuffer
 }
-
 
 //
 // Add an error handling function
@@ -40,14 +53,13 @@ func AddErrorHandler(name string, f errorhandler) {
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	// Config worker
 	w := &Worker{
-		Id: id,
-		Work: make(chan *WorkRequest),
-		WorkerQueue: workerQueue,
-		Quit: make(chan bool),
-		Error: false,
+		Id:             id,
+		Work:           make(chan *WorkRequest),
+		WorkerQueue:    workerQueue,
+		Quit:           make(chan bool),
+		Apns_cons:      make(map[string]*apns.APNSConnection),
+		payload_buffer: make(map[string]*PayloadBuffer),
 	}
-
-	w.OpenAPNS()
 
 	return w
 }
@@ -56,70 +68,65 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 //
 // Load apns settings
 //
-func (w *Worker) OpenAPNS() {
-	log.Printf("Opening APNS connection for worker %d\n", w.Id)
-	if _, ok := Config["apple_push_test_cert"]; ok {
-		// load test cert/key
-		testCertPem, err := ioutil.ReadFile(Config["apple_push_test_cert"])
-		if err != nil {
-			log.Fatal(err)
-		}
-		testKeyPem, err := ioutil.ReadFile(Config["apple_push_test_key"])
-		if err != nil {
-			log.Fatal(err)
-		}
-		tc, err := apns.NewAPNSConnection(&apns.APNSConfig{
-			CertificateBytes: testCertPem,
-			KeyBytes: testKeyPem,
-			GatewayHost: "gateway.sandbox.push.apple.com",
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
+func (w *Worker) OpenAPNS(key string) {
+	log.Printf("Opening APNS connection %s for worker %d\n", key, w.Id)
 
-		w.apns_test = tc
-	}
-
-
-	if _, ok := Config["apple_push_cert"]; ok {
+	if _, ok := Config[key]; ok {
 		// load cert/key
-		certPem, err := ioutil.ReadFile(Config["apple_push_cert"])
+		certPem, err := ioutil.ReadFile(Config[key])
 		if err != nil {
 			log.Fatal(err)
+			return
 		}
-		keyPem, err := ioutil.ReadFile(Config["apple_push_key"])
+		keyPem, err := ioutil.ReadFile(Config[key])
 		if err != nil {
 			log.Fatal(err)
+			return
 		}
-		rc, err := apns.NewAPNSConnection(&apns.APNSConfig{
+		conn, err := apns.NewAPNSConnection(&apns.APNSConfig{
 			CertificateBytes: certPem,
 			KeyBytes: keyPem,
 		})
 		if err != nil {
 			log.Fatal(err)
+			return
 		}
 
-		w.apns_real = rc
+		// Add connection to connection map
+		w.Apns_cons[key] = conn
 
 		// Create buffer
-		w.buffer = make([]*apns.Payload, 0)
-		w.buffer_offset = 1
+		w.payload_buffer[key] = &PayloadBuffer{
+			buffer:        make([]*apns.Payload, 0),
+			buffer_offset: 1,
+			error:         false,
+		}
 
-		go w.ErrorListen()
+		go w.ErrorListen(key)
+	} else {
+		log.Printf("No such key %s found in config\n", key)
 	}
 
 }
 
 
 //
-// Listen for apns errors and reload it
+// Listen for apns errors on a specific connection
 //
-func (w *Worker) ErrorListen() {
+func (w *Worker) ErrorListen(key string) {
+	if _, ok := w.payload_buffer[key]; !ok {
+		log.Printf("No such key %s\n", key)
+		return
+	}
+
+	// If we make it to the end of the function there was an error
 	defer func() {
-		w.Error = true
+		w.payload_buffer[key].error = true
 	}()
 
-	cc, ok := <- w.apns_real.CloseChannel
+
+	// Fetch close channel for the connection
+	cc, ok := <- w.Apns_cons[key].CloseChannel
 	if !ok || cc == nil {
 		return
 	}
@@ -128,10 +135,11 @@ func (w *Worker) ErrorListen() {
 	handle := func(code string) {
 		if eh, ok := error_handlers[code]; ok {
 			log.Println("Handling", code)
-			if idx := cc.Error.MessageID - w.buffer_offset; idx >= 0 && idx < uint32(len(w.buffer)) {
-				eh(w.buffer[idx])
+			pb := w.payload_buffer[key]
+			if idx := cc.Error.MessageID - pb.buffer_offset; idx >= 0 && idx < uint32(len(pb.buffer)) {
+				eh(pb.buffer[idx])
 			} else {
-				log.Println("MessageID out of bounds", idx, len(w.buffer))
+				log.Println("MessageID out of bounds", idx, len(pb.buffer))
 			}
 		} else {
 			log.Println("No handler for", code)
@@ -173,11 +181,13 @@ func (w *Worker) ErrorListen() {
 //
 // Add to buffer of messagse
 //
-func (w *Worker) BufferPayload(payload *apns.Payload) {
-	w.buffer = append(w.buffer, payload)
-	if len(w.buffer) > 100 {
-		w.buffer = w.buffer[1:]
-		w.buffer_offset++
+func (w *Worker) bufferPayload(key string, payload *apns.Payload) {
+	if pb, ok := w.payload_buffer[key]; ok {
+		pb.buffer = append(pb.buffer, payload)
+		if len(pb.buffer) > MAX_BUFFERED_MESSAGES {
+			pb.buffer = pb.buffer[1:]
+			pb.buffer_offset++
+		}
 	}
 }
 
@@ -185,16 +195,15 @@ func (w *Worker) BufferPayload(payload *apns.Payload) {
 //
 // Send over the channel opening if required
 //
-func (w *Worker) Send(payload *apns.Payload, testing bool) {
-	if w.Error {
-		w.Error = false
-		w.OpenAPNS()
-	}
-	if testing {
-		w.apns_test.SendChannel <- payload
-	}else {
-		w.apns_real.SendChannel <- payload
-		w.BufferPayload(payload)
+func (w *Worker) Send(key string, payload *apns.Payload) {
+	if pb, ok := w.payload_buffer[key]; ok {
+		if pb.error {
+			pb.error = false
+			w.OpenAPNS(key)
+		}
+
+		w.Apns_cons[key].SendChannel <- payload
+		w.bufferPayload(key, payload)
 	}
 }
 
@@ -227,11 +236,8 @@ func (w *Worker) Start() {
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)
 				wg.Done()
-				if w.apns_test != nil {
-					w.apns_test.Disconnect()
-				}
-				if w.apns_real != nil {
-					w.apns_real.Disconnect()
+				for _, con := range w.Apns_cons {
+					con.Disconnect()
 				}
 
 				return
