@@ -89,8 +89,10 @@ func NewApns(key string) {
 //
 func (w *Worker) OpenAPNS(key string) {
 	log.Printf("Opening APNS connection %s for worker %d\n", key, w.Id)
+	_, ok1 := Config[key + "_key"]
+	_, ok2 := Config[key + "_cert"]
 
-	if _, ok := Config[key]; ok {
+	if ok1 && ok2 {
 		// load cert/key
 		certPem, err := ioutil.ReadFile(Config[key + "_cert"])
 		if err != nil {
@@ -125,7 +127,6 @@ func (w *Worker) OpenAPNS(key string) {
 	} else {
 		log.Printf("No such key %s found in config\n", key)
 	}
-
 }
 
 
