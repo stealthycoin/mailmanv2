@@ -66,19 +66,35 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 
 
 //
+// Map a pair of config values to apns key/cert pair
+/// TODO explicar
+//
+func (w *Worker) NewApns(key string) {
+	// Set a blank connection and set its error to true
+	w.Apns_cons[key] = nil
+	w.payload_buffer[key] = &PayloadBuffer{
+		buffer:        make([]*apns.Payload, 0),
+		buffer_offset: 1,
+		error:         true,
+	}
+}
+
+
+//
 // Load apns settings
+// TODO MAKE USEFUL DOCS HERE MAN
 //
 func (w *Worker) OpenAPNS(key string) {
 	log.Printf("Opening APNS connection %s for worker %d\n", key, w.Id)
 
 	if _, ok := Config[key]; ok {
 		// load cert/key
-		certPem, err := ioutil.ReadFile(Config[key])
+		certPem, err := ioutil.ReadFile(Config[key + "_cert"])
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
-		keyPem, err := ioutil.ReadFile(Config[key])
+		keyPem, err := ioutil.ReadFile(Config[key + "_key"])
 		if err != nil {
 			log.Fatal(err)
 			return
