@@ -15,13 +15,13 @@ var (
 // Worker structure
 //
 type Worker struct {
-	Id int
-	Work chan *WorkRequest
-	WorkerQueue chan chan *WorkRequest
-	Quit chan bool
-	apns_test, apns_real *apns.APNSConnection
-	Error bool
-	buffer []*apns.Payload
+	Id            int
+	Work          chan *WorkRequest
+	WorkerQueue   chan chan *WorkRequest
+	Quit          chan bool
+	apns_cons     map[string]*apns.APNSConnection
+	Error         bool
+	buffer        []*apns.Payload
 	buffer_offset uint32
 }
 
