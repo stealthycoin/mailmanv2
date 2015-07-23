@@ -114,8 +114,6 @@ func (w *Worker) OpenAPNS(key string) {
 			return
 		}
 
-		log.Println(string(keyPem), string(certPem))
-
 		// Add connection to connection map
 		w.Apns_cons[key] = conn
 
@@ -225,7 +223,6 @@ func (w *Worker) Send(key string, payload *apns.Payload) {
 			pb.error = false
 			w.OpenAPNS(key)
 		}
-		log.Println("Sending", key)
 		// Send message and buffer it
 		w.Apns_cons[key].SendChannel <- payload
 		w.bufferPayload(key, payload)
