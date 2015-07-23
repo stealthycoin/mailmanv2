@@ -88,11 +88,12 @@ func NewApns(key string) {
 // TODO MAKE USEFUL DOCS HERE MAN
 //
 func (w *Worker) OpenAPNS(key string) {
-	log.Printf("Opening APNS connection %s for worker %d\n", key, w.Id)
 	_, ok1 := Config[key + "_key"]
 	_, ok2 := Config[key + "_cert"]
 
 	if ok1 && ok2 {
+		log.Printf("Opening APNS connection %s for worker %d\n", key, w.Id)
+
 		// load cert/key
 		certPem, err := ioutil.ReadFile(Config[key + "_cert"])
 		if err != nil {
@@ -112,6 +113,8 @@ func (w *Worker) OpenAPNS(key string) {
 			log.Fatal(err)
 			return
 		}
+
+		log.Println(string(keyPem), string(certPem))
 
 		// Add connection to connection map
 		w.Apns_cons[key] = conn
@@ -222,7 +225,7 @@ func (w *Worker) Send(key string, payload *apns.Payload) {
 			pb.error = false
 			w.OpenAPNS(key)
 		}
-
+		log.Println("Sending", key)
 		// Send message and buffer it
 		w.Apns_cons[key].SendChannel <- payload
 		w.bufferPayload(key, payload)
