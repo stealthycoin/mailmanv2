@@ -195,7 +195,7 @@ func (w *Worker) ErrorListen(key string) {
 }
 
 //
-// Add to buffer of messagse
+// Place last sent payload into a buffer to reference in case of error
 //
 func (w *Worker) bufferPayload(key string, payload *apns.Payload) {
 	if pb, ok := w.payload_buffer[key]; ok {
@@ -213,13 +213,17 @@ func (w *Worker) bufferPayload(key string, payload *apns.Payload) {
 //
 func (w *Worker) Send(key string, payload *apns.Payload) {
 	if pb, ok := w.payload_buffer[key]; ok {
+		// Check for error and reopen if required
 		if pb.error {
 			pb.error = false
 			w.OpenAPNS(key)
 		}
 
+		// Send message and buffer it
 		w.Apns_cons[key].SendChannel <- payload
 		w.bufferPayload(key, payload)
+	} else {
+		log.Printf("Cannot send to channel located at key %s\n", key)
 	}
 }
 
