@@ -48,6 +48,10 @@ func InitConfig() {
 	}()
 }
 
+
+//
+// Loads configuration file using the standard format
+//
 func LoadConfig() {
 	log.Println("Loading Config.")
 	// Defaults set here and will be overrided by the Config file
