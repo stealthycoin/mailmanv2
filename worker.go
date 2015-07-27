@@ -109,6 +109,7 @@ func (w *Worker) OpenAPNS(key string) {
 		if ngate, ok := Config[key + "_gate"]; ok {
 			gateway = ngate
 		}
+		log.Println(gateway)
 		conn, err := apns.NewAPNSConnection(&apns.APNSConfig{
 			CertificateBytes: certPem,
 			KeyBytes:         keyPem,
