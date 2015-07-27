@@ -106,7 +106,7 @@ func (w *Worker) OpenAPNS(key string) {
 			return
 		}
 		gateway := "gateway.push.apple.com"
-		if ngate, ok := config[key + "_gate"]; ok {
+		if ngate, ok := Config[key + "_gate"]; ok {
 			gateway = ngate
 		}
 		conn, err := apns.NewAPNSConnection(&apns.APNSConfig{
