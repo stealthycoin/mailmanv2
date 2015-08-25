@@ -9,7 +9,8 @@ import (
 	"encoding/json"
 )
 
-// Package Variables
+// CollectRequest can be used to queue a work request without going through
+// the mailman server.
 var (
 	endpoints map[string]endpoint
 	methods map[string]pushmethod
