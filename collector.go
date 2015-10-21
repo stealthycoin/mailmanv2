@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"html"
 	"net/http"
 	"net/url"
 	"encoding/json"
@@ -167,7 +168,7 @@ func ShowMeTheGoods(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "No mail")
 		}
 		for _, mail := range requests {
-			fmt.Fprintf(w, "<div onclick='window.open(\"/remove?password=pancakesauce&hash=%v\");location.reload();' style='margin-right:2px;text-align:center;display:inline-block;width:1em;border:1px solid black;border-radius:50%%'>x</div>%v %v %v %v<br/>", mail.Uid, mail.Endpoint, mail.Token, mail.Timestamp, mail.Payload)
+			fmt.Fprintf(w, "<div onclick='window.open(\"/remove?password=pancakesauce&hash=%v\");location.reload();' style='margin-right:2px;text-align:center;display:inline-block;width:1em;border:1px solid black;border-radius:50%%'>x</div>%v %v %v %v<br/>", mail.Uid, mail.Endpoint, mail.Token, mail.Timestamp, html.EscapeString(mail.Payload))
 		}
 	} else {
 		fmt.Fprintf(w, "404 page not found")
