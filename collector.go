@@ -111,8 +111,10 @@ func InitCollector(workerCount int) {
 						if ok {
 							old.Cancel <- true
 						}
-						requests[wr.Uid] = wr
-						go wr.StartTimer()
+						if wr != nil {
+							requests[wr.Uid] = wr
+							go wr.StartTimer()
+						}
 					} else {
 						log.Println("No such method:", wr.Method)
 					}
