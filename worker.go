@@ -177,6 +177,8 @@ func (w *Worker) ErrorListen(key string) {
 	case 251:
 		log.Println("EOF")
 		handle("EOF")
+		// Disconnect
+		w.Apns_cons[key].Disconnect()
 	case 1:
 		log.Println("PROCESSING_ERROR")
 		handle("PROCESSING_ERROR")
