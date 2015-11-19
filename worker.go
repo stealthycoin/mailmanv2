@@ -3,6 +3,7 @@ package mailmanv2
 import (
 	"fmt"
 	"log"
+	"time"
 	"io/ioutil"
 	apns "github.com/joekarl/go-libapns"
 )
@@ -13,6 +14,7 @@ const (
 
 var (
 	error_handlers = make(map[string]errorhandler)
+	apns_keys = make([]string, 0)
 )
 
 
@@ -30,13 +32,17 @@ type PayloadBuffer struct {
 // Worker structure
 //
 type Worker struct {
-	Id             int
-	Work           chan *WorkRequest
-	WorkerQueue    chan chan *WorkRequest
-	Quit           chan bool
+	Id             int                    `json:"id"`
+	Work           chan *WorkRequest      `json:"-"`
+	WorkerQueue    chan chan *WorkRequest `json:"-"`
+	Quit           chan bool              `json:"-"`
+	Done           chan bool              `json:"-"`
+	Status         string                 `json:"status"`
+	Handled        int64                  `json:"num_requests"`
+	Online         int64                  `json:"last_restart"`
 	// Parallel maps, not good (TODO)
-	Apns_cons      map[string]*apns.APNSConnection
-	payload_buffer map[string]*PayloadBuffer
+	Apns_cons      map[string]*apns.APNSConnection `json:"-"`
+	payload_buffer map[string]*PayloadBuffer       `json:"-"`
 }
 
 //
@@ -51,14 +57,26 @@ func AddErrorHandler(name string, f errorhandler) {
 // Create a new worker
 //
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
+	wg.Add(1)
 	// Config worker
 	w := &Worker{
 		Id:             id,
 		Work:           make(chan *WorkRequest),
 		WorkerQueue:    workerQueue,
 		Quit:           make(chan bool),
+		Done:           make(chan bool),
 		Apns_cons:      make(map[string]*apns.APNSConnection),
 		payload_buffer: make(map[string]*PayloadBuffer),
+	}
+
+	// Give it all apns keys
+	for _, key := range apns_keys {
+		w.Apns_cons[key] = nil
+		w.payload_buffer[key] = &PayloadBuffer{
+			buffer:        make([]*apns.Payload, 0),
+			buffer_offset: 1,
+			error:         true,
+		}
 	}
 
 	return w
@@ -70,7 +88,10 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 /// TODO explicar
 //
 func NewApns(key string) {
+	// APNS key to the config document
 	// For all workers currently running
+	apns_keys = append(apns_keys, key)
+
 	for _, w := range workers {
 		// Set a blank connection and set its error to true
 		w.Apns_cons[key] = nil
@@ -153,7 +174,7 @@ func (w *Worker) ErrorListen(key string) {
 
 	// Fetch close channel for the connection
 	cc, ok := <- w.Apns_cons[key].CloseChannel
-	if !ok || cc == nil {
+	if !ok || cc.Error == nil {
 		return
 	}
 
@@ -224,6 +245,7 @@ func (w *Worker) bufferPayload(key string, payload *apns.Payload) {
 // Send over the channel opening if required
 //
 func (w *Worker) Send(key string, payload *apns.Payload) {
+	log.Println("Sending", key)
 	if pb, ok := w.payload_buffer[key]; ok {
 		// Check for error and reopen if required
 		if pb.error {
@@ -242,13 +264,19 @@ func (w *Worker) Send(key string, payload *apns.Payload) {
 // Start worker routine
 //
 func (w *Worker) Start() {
+	// Setup
+	w.Online = time.Now().Unix()
+
 	go func() {
 		for {
 			log.Println("Queueing worker", w.Id)
+			w.Status = "Queued"
 			w.WorkerQueue <- w.Work
 			select {
 			case wr := <- w.Work:
 				func () {
+					w.Status = "Working"
+					w.Handled++
 					// Recover from any error that occurs during work, must requeue the worker
 					defer func() {
 						if r := recover(); r != nil {
@@ -257,6 +285,7 @@ func (w *Worker) Start() {
 					}()
 
 					// Check for endpoint and call function
+					log.Println(w)
 					if fn, ok := endpoints[wr.Endpoint]; ok {
 						log.Println("Worker", w.Id, "Starting work")
 						fn(wr, w)
@@ -266,9 +295,13 @@ func (w *Worker) Start() {
 				}()
 			case <- w.Quit:
 				fmt.Printf("Worker %d shutting down.\n", w.Id)
+				close(w.Work) // Close our worker workrequest channel
 				wg.Done()
+				close(w.Done)
 				for _, con := range w.Apns_cons {
-					con.Disconnect()
+					if con != nil {
+						con.Disconnect()
+					}
 				}
 
 				return

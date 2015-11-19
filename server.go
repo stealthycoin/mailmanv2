@@ -28,5 +28,11 @@ func StartServer() {
 	http.HandleFunc("/remove", Remove)
 	http.HandleFunc("/showmethegoods", ShowMeTheGoods)
 
+
+	// API
+	http.HandleFunc("/mm/api/keys", MMKeys)
+	http.HandleFunc("/mm/api/status", MMStatus)
+	http.HandleFunc("/mm/api/reboot_worker", MMRebootWorker)
+
 	http.ListenAndServe(":8003", nil)
 }

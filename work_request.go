@@ -19,13 +19,13 @@ type WorkRequest struct {
 
 func NewWorkRequest(uid, endpoint, method, token, payload string, timestamp int64) *WorkRequest {
 	return &WorkRequest{
-		Uid: uid,
-		Endpoint: endpoint,
-		Method: method,
-		Payload: payload,
-		Token: token,
+		Uid:       uid,
+		Endpoint:  endpoint,
+		Method:    method,
+		Payload:   payload,
+		Token:     token,
 		Timestamp: timestamp,
-		Cancel: make(chan bool),
+		Cancel:    make(chan bool),
 	}
 }
 

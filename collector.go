@@ -10,6 +10,9 @@ import (
 	"encoding/json"
 )
 
+// Make a fantastic recursive type
+type recfunc func(recfunc)
+
 // CollectRequest can be used to queue a work request without going through
 // the mailman server.
 var (
@@ -60,8 +63,6 @@ func InitCollector(workerCount int) {
 	CollectRequest = make(chan *WorkRequest, 256)
 	backup = make(chan bool)
 
-	wg.Add(workerCount)
-
 	for i := 1 ; i <= workerCount ; i++ {
 		w := NewWorker(i, workerQueue)
 		w.Start()
@@ -76,13 +77,24 @@ func InitCollector(workerCount int) {
 				// Make sure work is still valid
 				if work == requests[work.Uid] {
 					delete(requests, work.Uid)
-					go func() {
+					tryWork := func(self recfunc) {
+						log.Println("Starting trywork")
+						defer func() {
+							// Check for writing to a nil channel
+							// get another worker and try again
+							if r := recover(); r != nil{
+								log.Println("Recovering from sending to a nill channel")
+								self(self)
+							}
+						}()
+
 						// Get a worker from the worker queue
 						worker := <- workerQueue
 
 						// Give the worker the work to do
 						worker <- work
-					}()
+					}
+					go tryWork(tryWork)
 				}
 			case <- collectorQuit:
 				for _, worker := range workers {
