@@ -88,11 +88,14 @@ func InitCollector(workerCount int) {
 							}
 						}()
 
+						log.Println("Fetching worker from queue")
 						// Get a worker from the worker queue
 						worker := <- workerQueue
+						log.Println("Got worker")
 
 						// Give the worker the work to do
 						worker <- work
+						log.Println("Work sent to worker")
 					}
 					go tryWork(tryWork)
 				}
