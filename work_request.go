@@ -1,6 +1,7 @@
 package mailmanv2
 
 import (
+	"log"
 	"time"
 	apns "github.com/joekarl/go-libapns"
 )
@@ -31,15 +32,17 @@ func NewWorkRequest(uid, endpoint, method, token, payload string, timestamp int6
 
 func (wr *WorkRequest) StartTimer() {
 	sleepTime := wr.Timestamp - time.Now().Unix()
-	timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
 	if sleepTime <= 0 {
+		log.Println("Queueing right away", wr)
 		workQueue <- wr
 	} else {
 		// Wait for a cancel or for the timer to expire
+		timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
 		select {
 		case <- wr.Cancel:
 			timer.Stop()
 		case <- timer.C:
+			log.Println("Queueing after sleep", wr)
 			workQueue <- wr
 		}
 	}

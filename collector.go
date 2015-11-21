@@ -56,7 +56,7 @@ func InitCollector(workerCount int) {
 	// Global values
 	requests    = make(map[string]*WorkRequest)
 	workerQueue = make(chan chan *WorkRequest, workerCount)
-	workQueue   = make(chan *WorkRequest, 100)
+	workQueue   = make(chan *WorkRequest, 256)
 	workers     = make([]*Worker, 0, 0)
 
 	collectorQuit = make(chan bool)
@@ -72,8 +72,10 @@ func InitCollector(workerCount int) {
 	// Wait for work requests (this happens after a work request timer has expired)
 	go func() {
 		for {
+			log.Println("Collector ready")
 			select {
 			case work := <- workQueue:
+				log.Println("Got work", work)
 				// Make sure work is still valid
 				if work == requests[work.Uid] {
 					delete(requests, work.Uid)
@@ -100,11 +102,13 @@ func InitCollector(workerCount int) {
 					go tryWork(tryWork)
 				}
 			case <- collectorQuit:
+				log.Println("Got quit")
 				for _, worker := range workers {
 					worker.Quit <- true
 				}
 				return
 			case wr := <- CollectRequest:
+				log.Println("Got request", wr)
 				// Check method
 				if wr.Method == "add" {
 					// Add a new work request, replacing any old one with the same uid
@@ -135,6 +139,7 @@ func InitCollector(workerCount int) {
 					}
 				}
 			case <- backup:
+				log.Println("Got backup")
 				// do some backup stuff
 				BackupRequests()
 			}
@@ -158,6 +163,7 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	} else {
 		wr.Cancel = make(chan bool)
+		log.Println("Collecting request:", wr)
 		CollectRequest <- &wr
 		w.WriteHeader(200)
 	}
