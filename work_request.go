@@ -30,19 +30,35 @@ func NewWorkRequest(uid, endpoint, method, token, payload string, timestamp int6
 	}
 }
 
+
+
+func (wr *WorkRequest) TryCancel() {
+	defer func() {
+		if r := recover() ; r != nil {
+			log.Println("Cannot cancel", wr)
+		}
+	}()
+	wr.Cancel <- true
+}
+
+
+
 func (wr *WorkRequest) StartTimer() {
 	sleepTime := wr.Timestamp - time.Now().Unix()
 	if sleepTime <= 0 {
 		log.Println("Queueing right away", wr)
+		requests[wr.Uid] = wr
 		workQueue <- wr
 	} else {
 		// Wait for a cancel or for the timer to expire
+		requests[wr.Uid] = wr
 		timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
 		select {
 		case <- wr.Cancel:
 			timer.Stop()
 		case <- timer.C:
 			log.Println("Queueing after sleep", wr)
+			close(wr.Cancel)
 			workQueue <- wr
 		}
 	}

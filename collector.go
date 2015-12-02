@@ -85,7 +85,7 @@ func InitCollector(workerCount int) {
 							// Check for writing to a nil channel
 							// get another worker and try again
 							if r := recover(); r != nil{
-								log.Println("Recovering from sending to a nill channel")
+								log.Println("Recovering from sending to a nil channel")
 								self(self)
 							}
 						}()
@@ -115,12 +115,11 @@ func InitCollector(workerCount int) {
 					if oldwr, ok := requests[wr.Uid]; ok {
 						oldwr.Cancel <- true
 					}
-					requests[wr.Uid] = wr
 					go wr.StartTimer()
 				} else if wr.Method == "cancel" {
 					// Remove a work request with a given uid if it exists
 					if oldwr, ok := requests[wr.Uid]; ok {
-						oldwr.Cancel <- true
+						oldwr.TryCancel()
 						delete(requests, wr.Uid)
 					}
 				} else {
@@ -128,10 +127,9 @@ func InitCollector(workerCount int) {
 						old, ok := requests[wr.Uid]
 						wr = fn(old, wr)
 						if ok {
-							old.Cancel <- true
+							old.TryCancel()
 						}
 						if wr != nil {
-							requests[wr.Uid] = wr
 							go wr.StartTimer()
 						}
 					} else {
