@@ -113,7 +113,7 @@ func InitCollector(workerCount int) {
 				if wr.Method == "add" {
 					// Add a new work request, replacing any old one with the same uid
 					if oldwr, ok := requests[wr.Uid]; ok {
-						oldwr.Cancel <- true
+						oldwr.TryCancel()
 					}
 					go wr.StartTimer()
 				} else if wr.Method == "cancel" {
