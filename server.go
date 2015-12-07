@@ -30,7 +30,7 @@ func StartServer() {
 
 
 	// API
-	http.HandleFunc("/mm/api/keys", MMKeys)
+	http.HandleFunc("/mm/api/mail", MMMail)
 	http.HandleFunc("/mm/api/status", MMStatus)
 	http.HandleFunc("/mm/api/reboot_worker", MMRebootWorker)
 

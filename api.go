@@ -12,18 +12,8 @@ import (
 //
 // Func get a list of keys from the active work requests
 //
-func MMKeys(w http.ResponseWriter, r *http.Request) {
-	uniques := make(map[string]bool)
-	for key, _ := range requests {
-		uniques[key] = true
-	}
-
-	result := []string{}
-	for k, _ := range uniques {
-		result = append(result, k)
-	}
-
-	b, _ := json.Marshal(result)
+func MMMail(w http.ResponseWriter, r *http.Request) {
+	b, _ := json.Marshal(requests)
 	fmt.Fprintf(w, string(b))
 }
 

@@ -13,8 +13,9 @@ type WorkRequest struct {
 	Payload string   `json:"payload"`
 	Token string     `json:"token"`
 	Timestamp int64  `json:"timestamp"`
-	Cancel chan bool
-	apns_test, apns_real *apns.APNSConnection
+	Cancel chan bool `json:"-"`
+	apns_test *apns.APNSConnection `json:"-"`
+	apns_real *apns.APNSConnection `json:"-"`
 }
 
 
