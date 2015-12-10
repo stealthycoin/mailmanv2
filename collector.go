@@ -200,5 +200,5 @@ func ShowMeTheGoods(w http.ResponseWriter, r *http.Request) {
 func StopCollector() {
 	collectorQuit <- true
 	wg.Wait()
-	fmt.Println("All workers shut down.")
+	log.Println("All workers shut down.")
 }

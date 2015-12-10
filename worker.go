@@ -1,7 +1,6 @@
 package mailmanv2
 
 import (
-	"fmt"
 	"log"
 	"time"
 	"io/ioutil"
@@ -57,7 +56,6 @@ func AddErrorHandler(name string, f errorhandler) {
 // Create a new worker
 //
 func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
-	wg.Add(1)
 	// Config worker
 	w := &Worker{
 		Id:             id,
@@ -264,6 +262,10 @@ func (w *Worker) Send(key string, payload *apns.Payload) {
 // Start worker routine
 //
 func (w *Worker) Start() {
+	defer func() {
+		wg.Done()
+	}()
+	wg.Add(1)
 	// Setup
 	w.Online = time.Now().Unix()
 
@@ -294,15 +296,14 @@ func (w *Worker) Start() {
 					}
 				}()
 			case <- w.Quit:
-				fmt.Printf("Worker %d shutting down.\n", w.Id)
+				log.Printf("Worker %d shutting down\n", w.Id)
 				close(w.Work) // Close our worker workrequest channel
-				wg.Done()
-				close(w.Done)
 				for _, con := range w.Apns_cons {
 					if con != nil {
 						con.Disconnect()
 					}
 				}
+				close(w.Done)
 
 				return
 			}
