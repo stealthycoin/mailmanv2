@@ -23,6 +23,7 @@ var (
 	workQueue chan *WorkRequest
 	workers []*Worker
 	collectorQuit chan bool
+	collectorPause chan bool
 	CollectRequest chan *WorkRequest
 	backup chan bool
 	wg sync.WaitGroup
@@ -60,6 +61,7 @@ func InitCollector(workerCount int) {
 	workers     = make([]*Worker, 0, 0)
 
 	collectorQuit = make(chan bool)
+	collectorPause = make(chan bool)
 	CollectRequest = make(chan *WorkRequest, 256)
 	backup = make(chan bool)
 
@@ -115,7 +117,7 @@ func InitCollector(workerCount int) {
 					if oldwr, ok := requests[wr.Uid]; ok {
 						oldwr.TryCancel()
 					}
-					go wr.StartTimer()
+					wr.StartTimer()
 				} else if wr.Method == "cancel" {
 					// Remove a work request with a given uid if it exists
 					if oldwr, ok := requests[wr.Uid]; ok {
@@ -130,7 +132,7 @@ func InitCollector(workerCount int) {
 							old.TryCancel()
 						}
 						if wr != nil {
-							go wr.StartTimer()
+							wr.StartTimer()
 						}
 					} else {
 						log.Println("No such method:", wr.Method)
@@ -140,6 +142,11 @@ func InitCollector(workerCount int) {
 				log.Println("Got backup")
 				// do some backup stuff
 				BackupRequests()
+			case  <- collectorPause:
+				// Pause the collector until another pulse on the pause channel
+				log.Println("Pausing collector")
+				<- collectorPause
+				log.Println("Unpausing collector")
 			}
 		}
 	}()

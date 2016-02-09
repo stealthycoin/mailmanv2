@@ -18,16 +18,6 @@ var (
 
 
 //
-// Buffer to hold sent payloads for error handling
-//
-type PayloadBuffer struct {
-	buffer        []*apns.Payload
-	buffer_offset uint32
-	error         bool
-}
-
-
-//
 // Worker structure
 //
 type Worker struct {
@@ -42,6 +32,7 @@ type Worker struct {
 	// Parallel maps, not good (TODO)
 	Apns_cons      map[string]*apns.APNSConnection `json:"-"`
 	payload_buffer map[string]*PayloadBuffer       `json:"-"`
+
 }
 
 //
@@ -83,7 +74,7 @@ func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 
 //
 // Map a pair of config values to apns key/cert pair
-/// TODO explicar
+// TODO explicar
 //
 func NewApns(key string) {
 	// APNS key to the config document
@@ -287,7 +278,6 @@ func (w *Worker) Start() {
 					}()
 
 					// Check for endpoint and call function
-					log.Println(w)
 					if fn, ok := endpoints[wr.Endpoint]; ok {
 						log.Println("Worker", w.Id, "Starting work")
 						fn(wr, w)

@@ -1,6 +1,7 @@
 package mailmanv2
 
 import (
+	"os"
 	"fmt"
 	"log"
 	"strconv"
@@ -61,4 +62,15 @@ func MMRebootWorker(w http.ResponseWriter, r *http.Request) {
 		// it will be thrown out by the collector next time it is encountered
 		fmt.Fprintf(w, `"Worker rebooted"`)
 	}
+}
+
+
+//
+// Reboot the whole system
+//
+func MMKill(w http.ResponseWriter, r *http.Request) {
+	StopCollector()
+	BackupRequests()
+	os.Exit(1)
+	fmt.Fprintf(w, `"Shutdown"`)
 }

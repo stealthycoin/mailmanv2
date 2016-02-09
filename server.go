@@ -33,6 +33,7 @@ func StartServer() {
 	http.HandleFunc("/mm/api/mail", MMMail)
 	http.HandleFunc("/mm/api/status", MMStatus)
 	http.HandleFunc("/mm/api/reboot_worker", MMRebootWorker)
+	http.HandleFunc("/mm/api/shutdown", MMKill)
 
 	http.ListenAndServe(":8003", nil)
 }

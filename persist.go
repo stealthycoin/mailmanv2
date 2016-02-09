@@ -45,6 +45,10 @@ func InitPersist() {
 }
 
 func LoadRequests() {
+
+	// Pause the collector
+	collectorPause <- true
+
 	// Read gob into requests
 	file, err := os.Open(Config["backup_path"])
 	if err != nil {
@@ -53,17 +57,23 @@ func LoadRequests() {
 	}
 	defer file.Close()
 
+
+
 	dec := gob.NewDecoder(file)
-	err = dec.Decode(&requests)
+	temp_requests := make(map[string]*WorkRequest)
+	err = dec.Decode(&temp_requests)
 	if err != nil {
 		log.Println("Cannot decode backup file")
 	}
 
 	// Reload all work requests
-	for _, req := range requests {
+	for _, req := range temp_requests {
 		req.Cancel = make(chan bool)
-		go req.StartTimer()
+		req.StartTimer()
 	}
+
+	// Unpause the collector
+	collectorPause <- true
 }
 
 func BackupRequests() {

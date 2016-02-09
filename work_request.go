@@ -53,14 +53,16 @@ func (wr *WorkRequest) StartTimer() {
 	} else {
 		// Wait for a cancel or for the timer to expire
 		requests[wr.Uid] = wr
-		timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
-		select {
-		case <- wr.Cancel:
-			timer.Stop()
-		case <- timer.C:
-			log.Println("Queueing after sleep", wr)
-			close(wr.Cancel)
-			workQueue <- wr
-		}
+		go func() {
+			timer := time.NewTimer(time.Duration(sleepTime) * time.Second)
+			select {
+			case <- wr.Cancel:
+				timer.Stop()
+			case <- timer.C:
+				log.Println("Queueing after sleep", wr)
+				close(wr.Cancel)
+				workQueue <- wr
+			}
+		}()
 	}
 }

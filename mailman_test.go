@@ -51,8 +51,6 @@ func PrintlnEndpoint(wr *WorkRequest, w *Worker) {
 func init() {
 	TestResults = make(chan string)
 	InitConfig()
-	InitPersist()
-
 }
 
 
@@ -65,6 +63,7 @@ func TestBulk(t *testing.T) {
 
 	// Create a collector with three workers
 	InitCollector(3)
+
 
 	// Register the testing functions
 	AddEndpoint("testtime", TimePayload)
