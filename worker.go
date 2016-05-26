@@ -246,6 +246,7 @@ func (w *Worker) Send(key string, payload *apns.Payload) {
 		w.bufferPayload(key, payload)
 	} else {
 		log.Printf("Cannot send to channel located at key %s\n", key)
+		log.Println(w.payload_buffer)
 	}
 }
 
